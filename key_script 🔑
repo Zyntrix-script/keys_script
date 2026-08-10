@@ -1,0 +1,1288 @@
+--[====================================================================--
+--        ZYNTRIX HUB - MASTER ESP, AUTO FARM & VÔ HẠN NHẢY NGẦM       --
+--[====================================================================--
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- Trạng thái hệ thống
+local MonsterEspEnabled = false
+local DoorEspEnabled = false
+local KeyEspEnabled = false
+local PlayerEspEnabled = false
+local AutoFarmEnabled = false
+
+-- Lưu trữ dữ liệu ESP
+local TrackedMonsters = {}    -- [model] = { Highlight = ..., Billboard = ..., TextLabel = ... }
+local TrackedDoors = {}       -- [door] = { Highlight = ..., Billboard = ..., TextLabel = ..., TargetPart = ..., IsOpened = false }
+local TrackedKeys = {}        -- [keyObj] = { Highlight = ..., Billboard = ..., TextLabel = ..., TargetPart = ... }
+local TrackedPlayers = {}     -- [player] = { Highlight = ..., Billboard = ..., TextLabel = ..., Character = ..., RootPart = ... }
+
+local OpenedDoorsHistory = {}   -- Lưu các cửa đã mở
+local CollectedKeysHistory = {} -- Lưu các key đã nhặt
+
+-- Các bảng quản lý Connection riêng biệt
+local MonsterConnections = {}
+local DoorConnections = {}
+local KeyConnections = {}
+local PlayerConnections = {}
+local MapConnections = {}
+
+-- Danh sách tên quái vật cần định vị
+local MONSTER_NAMES = {
+    ["SlayBear (Bear)"] = true,
+    ["Grinsane (Joker)"] = true,
+    ["Bloodhowl (Werewolf)"] = true,
+    ["Lanternlord (Pumpkin Man)"] = true,
+    ["ABSTRACT(Purp)"] = true,
+    ["Slayr (Butcher)"] = true,
+    ["HexHare (Rabbit)"] = true,
+    ["FrostClaw (Yeti)"] = true,
+    ["Mickey(Mouse)"] = true,
+    ["CreepCat (Cat)"] = true,
+}
+
+--[====================================================================--
+--                          TẠO GIAO DIỆN UI (ZYNTRIX HUB)            --
+--[====================================================================--
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ZyntrixSimpleHubUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 240, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -120, 0.2, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
+
+-- Thanh tiêu đề (TopBar)
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 6)
+
+-- Sửa góc dưới TopBar phẳng để khớp MainFrame
+local FixCorner = Instance.new("Frame")
+FixCorner.Size = UDim2.new(1, 0, 0, 6)
+FixCorner.Position = UDim2.new(0, 0, 1, -6)
+FixCorner.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+FixCorner.BorderSizePixel = 0
+FixCorner.Parent = TopBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "ZYNTRIX HUB"
+TitleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+TitleLabel.TextSize = 13
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = TopBar
+
+-- Nút thu gọn / mở rộng (Minimize)
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+MinimizeBtn.Position = UDim2.new(1, -33, 0.5, -14)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.Text = "▼"
+MinimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+MinimizeBtn.TextSize = 11
+MinimizeBtn.Parent = TopBar
+Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 4)
+
+-- ScrollingFrame chứa các chức năng
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Name = "ScrollingFrame"
+ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
+ScrollingFrame.Position = UDim2.new(0, 5, 0, 40)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 275)
+ScrollingFrame.ScrollBarThickness = 4
+ScrollingFrame.Parent = MainFrame
+
+-- Nút Toggle Monster ESP
+local MonsterBtn = Instance.new("TextButton")
+MonsterBtn.Size = UDim2.new(1, 0, 0, 32)
+MonsterBtn.Position = UDim2.new(0, 0, 0, 5)
+MonsterBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MonsterBtn.Font = Enum.Font.GothamBold
+MonsterBtn.Text = "Monster ESP: OFF"
+MonsterBtn.TextColor3 = Color3.fromRGB(200, 50, 50)
+MonsterBtn.TextSize = 11
+MonsterBtn.Parent = ScrollingFrame
+Instance.new("UICorner", MonsterBtn).CornerRadius = UDim.new(0, 6)
+
+-- Nút Toggle Door ESP
+local DoorBtn = Instance.new("TextButton")
+DoorBtn.Size = UDim2.new(1, 0, 0, 32)
+DoorBtn.Position = UDim2.new(0, 0, 0, 42)
+DoorBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+DoorBtn.Font = Enum.Font.GothamBold
+DoorBtn.Text = "Door ESP: OFF"
+DoorBtn.TextColor3 = Color3.fromRGB(50, 180, 200)
+DoorBtn.TextSize = 11
+DoorBtn.Parent = ScrollingFrame
+Instance.new("UICorner", DoorBtn).CornerRadius = UDim.new(0, 6)
+
+-- Nút Toggle Key ESP
+local KeyBtn = Instance.new("TextButton")
+KeyBtn.Size = UDim2.new(1, 0, 0, 32)
+KeyBtn.Position = UDim2.new(0, 0, 0, 79)
+KeyBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+KeyBtn.Font = Enum.Font.GothamBold
+KeyBtn.Text = "Key ESP: OFF"
+KeyBtn.TextColor3 = Color3.fromRGB(255, 220, 50)
+KeyBtn.TextSize = 11
+KeyBtn.Parent = ScrollingFrame
+Instance.new("UICorner", KeyBtn).CornerRadius = UDim.new(0, 6)
+
+-- Nút Toggle Player ESP
+local PlayerBtn = Instance.new("TextButton")
+PlayerBtn.Size = UDim2.new(1, 0, 0, 32)
+PlayerBtn.Position = UDim2.new(0, 0, 0, 116)
+PlayerBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+PlayerBtn.Font = Enum.Font.GothamBold
+PlayerBtn.Text = "Player ESP: OFF"
+PlayerBtn.TextColor3 = Color3.fromRGB(50, 200, 50)
+PlayerBtn.TextSize = 11
+PlayerBtn.Parent = ScrollingFrame
+Instance.new("UICorner", PlayerBtn).CornerRadius = UDim.new(0, 6)
+
+-- Nút Auto Farm
+local AutoFarmBtn = Instance.new("TextButton")
+AutoFarmBtn.Size = UDim2.new(1, 0, 0, 45)
+AutoFarmBtn.Position = UDim2.new(0, 0, 0, 153)
+AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 0)
+AutoFarmBtn.Font = Enum.Font.GothamBold
+AutoFarmBtn.Text = "⚡ AUTO FARM: OFF"
+AutoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoFarmBtn.TextSize = 12
+AutoFarmBtn.Parent = ScrollingFrame
+Instance.new("UICorner", AutoFarmBtn).CornerRadius = UDim.new(0, 6)
+
+-- Logic Minimize UI
+local isMinimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MinimizeBtn.Text = "▲"
+        ScrollingFrame.Visible = false
+        MainFrame.Size = UDim2.new(0, 240, 0, 35)
+    else
+        MinimizeBtn.Text = "▼"
+        ScrollingFrame.Visible = true
+        MainFrame.Size = UDim2.new(0, 240, 0, 310)
+    end
+end)
+
+--[====================================================================--
+--              CƠ CHẾ KÉO THẢ UI CHUẨN XÁC & MƯỢT MÀ                 --
+--[====================================================================--
+
+local dragging = false
+local dragStart
+local startPos
+local dragInput
+
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        dragInput = input
+    end
+end)
+
+TopBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if not dragging then return end
+
+    if input == dragInput
+        or input.UserInputType == Enum.UserInputType.MouseMovement then
+
+        local delta = input.Position - dragStart
+
+        local camera = workspace.CurrentCamera
+        local viewport = camera.ViewportSize
+
+        local newX = startPos.X.Offset + delta.X
+        local newY = startPos.Y.Offset + delta.Y
+
+        local maxX = viewport.X - MainFrame.AbsoluteSize.X - 20
+        local maxY = viewport.Y - MainFrame.AbsoluteSize.Y - 20
+
+        newX = math.clamp(newX, -MainFrame.AbsoluteSize.X + 20, maxX)
+        newY = math.clamp(newY, 20, maxY)
+
+        MainFrame.Position = UDim2.fromOffset(newX, newY)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        dragging = false
+        dragInput = nil
+    end
+end)
+
+--[====================================================================--
+--                    CONNECTION MANAGER                       --
+--[====================================================================--
+
+local function DisconnectConnection(connectionTable, key)
+    local connection = connectionTable[key]
+    if connection then
+        connection:Disconnect()
+        connectionTable[key] = nil
+    end
+end
+
+local function DisconnectAll(connectionTable)
+    for key, connection in pairs(connectionTable) do
+        if connection then
+            connection:Disconnect()
+        end
+        connectionTable[key] = nil
+    end
+end
+
+--[====================================================================--
+--                         VÔ HẠN NHẢY NGẦM                            --
+--[====================================================================--
+
+UserInputService.JumpRequest:Connect(function()
+    local char = LocalPlayer.Character
+    if char then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+--[====================================================================--
+--                         MONSTER ESP LOGIC                           --
+--[====================================================================--
+
+local function GetGamePlayersContainer()
+    local gameFolder = Workspace:FindFirstChild("Game")
+    if gameFolder then
+        return gameFolder:FindFirstChild("GamePlayers")
+    end
+    return nil
+end
+
+local function DestroyMonsterESP(model)
+    local data = TrackedMonsters[model]
+    if not data then return end
+    if data.Highlight then data.Highlight:Destroy() end
+    if data.Billboard then data.Billboard:Destroy() end
+    TrackedMonsters[model] = nil
+end
+
+local function CleanupMonsters()
+    DisconnectAll(MonsterConnections)
+    for model, data in pairs(TrackedMonsters) do
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+    end
+    table.clear(TrackedMonsters)
+end
+
+local function CreateMonsterESP(model)
+    if not MonsterEspEnabled or not model or not model:IsA("Model") or TrackedMonsters[model] then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "MonsterESP"
+    highlight.Adornee = model
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    highlight.FillTransparency = 0.75
+    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = model
+
+    local targetPart = model:FindFirstChild("HumanoidRootPart") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "MonsterESPLabel"
+    billboard.Adornee = targetPart or model
+    billboard.Size = UDim2.fromOffset(200, 40)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = model
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.fromScale(1, 1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextColor3 = Color3.fromRGB(255, 60, 60)
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.TextStrokeTransparency = 0
+    label.Text = model.Name .. " | 0m"
+    label.Parent = billboard
+
+    TrackedMonsters[model] = { Highlight = highlight, Billboard = billboard, TextLabel = label }
+
+    MonsterConnections["Ancestry_" .. tostring(model)] = model.AncestryChanged:Connect(function(_, parent)
+        if not parent then DestroyMonsterESP(model) end
+    end)
+end
+
+local function ScanMonsters()
+    if not MonsterEspEnabled then return end
+    local container = GetGamePlayersContainer()
+    if not container then return end
+
+    for _, child in ipairs(container:GetChildren()) do
+        if MONSTER_NAMES[child.Name] then
+            CreateMonsterESP(child)
+        end
+    end
+end
+
+local function EnableMonsterESP()
+    if MonsterEspEnabled then return end
+    MonsterEspEnabled = true
+    ScanMonsters()
+
+    local container = GetGamePlayersContainer()
+    if container then
+        MonsterConnections["ContainerChildAdded"] = container.ChildAdded:Connect(function(child)
+            if not MonsterEspEnabled then return end
+            if MONSTER_NAMES[child.Name] then
+                task.wait(0.1)
+                CreateMonsterESP(child)
+            end
+        end)
+    end
+end
+
+local function DisableMonsterESP()
+    if not MonsterEspEnabled then return end
+    MonsterEspEnabled = false
+    CleanupMonsters()
+end
+
+--[====================================================================--
+--                         DOOR ESP & INTERACTION LOGIC                --
+--[====================================================================--
+
+local function DestroyDoorESP(door)
+    local data = TrackedDoors[door]
+    if not data then return end
+    if data.Highlight then data.Highlight:Destroy() end
+    if data.Billboard then data.Billboard:Destroy() end
+    TrackedDoors[door] = nil
+end
+
+local function MarkDoorOpened(door)
+    local data = TrackedDoors[door]
+    if not data or data.IsOpened then return end
+    data.IsOpened = true
+    OpenedDoorsHistory[door] = true
+    DestroyDoorESP(door)
+end
+
+local function IsDoorOpened(door)
+    if not door or not door.Parent then return true end
+    local attributes = {"Opened", "IsOpened", "Open", "Unlocked", "IsOpen"}
+    for _, attributeName in ipairs(attributes) do
+        if door:GetAttribute(attributeName) == true then return true end
+    end
+    local state = door:GetAttribute("State")
+    if typeof(state) == "string" then
+        local lowered = string.lower(state)
+        if lowered == "open" or lowered == "opened" or lowered == "unlocked" then return true end
+    end
+    local prompt = door:FindFirstChildWhichIsA("ProximityPrompt", true)
+    if prompt and not prompt.Enabled then
+        if door:GetAttribute("PromptDisabledMeansOpened") == true then return true end
+    end
+    return false
+end
+
+local function GetDoorTargetPart(door)
+    if not door then return nil end
+    local preferredNames = {"DoorLeft", "DoorRight", "ControlPart", "PrimaryPart"}
+    for _, name in ipairs(preferredNames) do
+        local obj = door:FindFirstChild(name, true)
+        if obj and obj:IsA("BasePart") then return obj end
+    end
+    if door:IsA("BasePart") then return door end
+    return door:FindFirstChildWhichIsA("BasePart", true)
+end
+
+local function CreateDoorESP(door)
+    if not DoorEspEnabled or not door or not door.Parent then return end
+    if TrackedDoors[door] and TrackedDoors[door].Highlight then return end
+    if OpenedDoorsHistory[door] then return end
+
+    if IsDoorOpened(door) then
+        OpenedDoorsHistory[door] = true
+        return
+    end
+
+    local targetPart = GetDoorTargetPart(door)
+    if not targetPart then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "DoorESP"
+    highlight.Adornee = door
+    highlight.FillColor = Color3.fromRGB(0, 200, 255)
+    highlight.FillTransparency = 0.82
+    highlight.OutlineColor = Color3.fromRGB(0, 255, 255)
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = door
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "DoorESPLabel"
+    billboard.Adornee = targetPart
+    billboard.Size = UDim2.fromOffset(180, 40)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = door
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.fromScale(1, 1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextColor3 = Color3.fromRGB(0, 230, 255)
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.TextStrokeTransparency = 0
+    label.Text = "DOOR | 0m"
+    label.Parent = billboard
+
+    if TrackedDoors[door] then
+        TrackedDoors[door].Highlight = highlight
+        TrackedDoors[door].Billboard = billboard
+        TrackedDoors[door].TextLabel = label
+        TrackedDoors[door].TargetPart = targetPart
+    else
+        TrackedDoors[door] = {
+            Highlight = highlight,
+            Billboard = billboard,
+            TextLabel = label,
+            TargetPart = targetPart,
+            IsOpened = false
+        }
+    end
+
+    DoorConnections["Attribute_" .. tostring(door)] = door.AttributeChanged:Connect(function()
+        if IsDoorOpened(door) then MarkDoorOpened(door) end
+    end)
+
+    DoorConnections["Child_" .. tostring(door)] = door.DescendantAdded:Connect(function()
+        task.defer(function()
+            if IsDoorOpened(door) then MarkDoorOpened(door) end
+        end)
+    end)
+
+    DoorConnections["Ancestry_" .. tostring(door)] = door.AncestryChanged:Connect(function(_, parent)
+        if not parent then DestroyDoorESP(door) end
+    end)
+end
+
+local function IsPotentialDoor(obj)
+    if not obj then return false end
+    local name = string.lower(obj.Name)
+    if name == "door" or name == "doorleft" or name == "doorright" or name:find("door", 1, true) then
+        return true
+    end
+    local axisLeft = obj:FindFirstChild("AxisLeft")
+    if axisLeft and axisLeft:FindFirstChild("DoorLeft") then return true end
+    return false
+end
+
+local function ScanDoors()
+    local mapsFolder = Workspace:FindFirstChild("Maps")
+    if not mapsFolder then return end
+
+    for _, map in ipairs(mapsFolder:GetChildren()) do
+        for _, obj in ipairs(map:GetDescendants()) do
+            if IsPotentialDoor(obj) then
+                local door = obj
+                if obj:IsA("BasePart") then door = obj.Parent end
+                if door and not OpenedDoorsHistory[door] and not IsDoorOpened(door) then
+                    local targetPart = GetDoorTargetPart(door)
+                    if targetPart then
+                        if not TrackedDoors[door] then
+                            TrackedDoors[door] = { TargetPart = targetPart, IsOpened = false }
+                        end
+                        if DoorEspEnabled then
+                            CreateDoorESP(door)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function CleanupDoors()
+    for door, data in pairs(TrackedDoors) do
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+        data.Highlight = nil
+        data.Billboard = nil
+        data.TextLabel = nil
+    end
+    if not AutoFarmEnabled then
+        DisconnectAll(DoorConnections)
+        table.clear(TrackedDoors)
+    end
+end
+
+local function EnableDoorESP()
+    if DoorEspEnabled then return end
+    DoorEspEnabled = true
+    ScanDoors()
+    for door, _ in pairs(TrackedDoors) do
+        CreateDoorESP(door)
+    end
+
+    local mapsFolder = Workspace:FindFirstChild("Maps")
+    if mapsFolder then
+        MapConnections["DoorDescendantAdded"] = mapsFolder.DescendantAdded:Connect(function(obj)
+            if not DoorEspEnabled then return end
+            task.defer(function()
+                if IsPotentialDoor(obj) then
+                    local door = obj
+                    if obj:IsA("BasePart") then door = obj.Parent end
+                    if door then 
+                        local targetPart = GetDoorTargetPart(door)
+                        if targetPart then
+                            if not TrackedDoors[door] then
+                                TrackedDoors[door] = { TargetPart = targetPart, IsOpened = false }
+                            end
+                            CreateDoorESP(door)
+                        end
+                    end
+                end
+            end)
+        end)
+    end
+end
+
+local function DisableDoorESP()
+    if not DoorEspEnabled then return end
+    DoorEspEnabled = false
+    for door, data in pairs(TrackedDoors) do
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+        data.Highlight = nil
+        data.Billboard = nil
+        data.TextLabel = nil
+    end
+    if not AutoFarmEnabled then
+        CleanupDoors()
+    end
+end
+
+--[====================================================================--
+--                   KEY ESP & AUTO FARM LOGIC                         --
+--[====================================================================--
+
+local function DestroyKeyESP(keyObj)
+    local data = TrackedKeys[keyObj]
+    if not data then return end
+    if data.Highlight then data.Highlight:Destroy() end
+    if data.Billboard then data.Billboard:Destroy() end
+    TrackedKeys[keyObj] = nil
+end
+
+local function MarkKeyCollected(keyObj)
+    local data = TrackedKeys[keyObj]
+    if not data then return end
+    CollectedKeysHistory[keyObj] = true
+    DestroyKeyESP(keyObj)
+end
+
+local function IsKeyObject(obj)
+    if not obj then return false end
+    local name = obj.Name
+    if name == "Meshes/suo_LOCK01" or name == "Meshes/suo_LOCK02" then
+        return true
+    end
+    local fullName = obj:GetFullName()
+    if string.find(fullName, "Meshes/suo_LOCK01") or string.find(fullName, "Meshes/suo_LOCK02") then
+        return true
+    end
+    return false
+end
+
+local function GetKeyTargetPart(keyObj)
+    if not keyObj then return nil end
+    if keyObj:IsA("BasePart") then return keyObj end
+    return keyObj:FindFirstChildWhichIsA("BasePart", true)
+end
+
+local function CreateKeyESP(keyObj)
+    if not keyObj or not keyObj.Parent then return end
+    if TrackedKeys[keyObj] and TrackedKeys[keyObj].Highlight then return end
+    if CollectedKeysHistory[keyObj] then return end
+
+    local targetPart = GetKeyTargetPart(keyObj)
+    if not targetPart then return end
+
+    local highlight, billboard, label
+    if KeyEspEnabled then
+        highlight = Instance.new("Highlight")
+        highlight.Name = "KeyESP"
+        highlight.Adornee = keyObj
+        highlight.FillColor = Color3.fromRGB(255, 220, 0)
+        highlight.FillTransparency = 0.75
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 100)
+        highlight.OutlineTransparency = 0
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = keyObj
+
+        billboard = Instance.new("BillboardGui")
+        billboard.Name = "KeyESPLabel"
+        billboard.Adornee = targetPart
+        billboard.Size = UDim2.fromOffset(180, 40)
+        billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = keyObj
+
+        label = Instance.new("TextLabel")
+        label.Size = UDim2.fromScale(1, 1)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 13
+        label.TextColor3 = Color3.fromRGB(255, 235, 50)
+        label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        label.TextStrokeTransparency = 0
+        label.Text = "KEY | 0m"
+        label.Parent = billboard
+    end
+
+    if TrackedKeys[keyObj] then
+        TrackedKeys[keyObj].Highlight = highlight
+        TrackedKeys[keyObj].Billboard = billboard
+        TrackedKeys[keyObj].TextLabel = label
+        TrackedKeys[keyObj].TargetPart = targetPart
+    else
+        TrackedKeys[keyObj] = {
+            Highlight = highlight,
+            Billboard = billboard,
+            TextLabel = label,
+            TargetPart = targetPart
+        }
+    end
+
+    KeyConnections["Ancestry_" .. tostring(keyObj)] = keyObj.AncestryChanged:Connect(function(_, parent)
+        if not parent then MarkKeyCollected(keyObj) end
+    end)
+end
+
+local function ScanKeys()
+    local mapsFolder = Workspace:FindFirstChild("Maps")
+    if not mapsFolder then return end
+
+    for _, map in ipairs(mapsFolder:GetChildren()) do
+        for _, descendant in ipairs(map:GetDescendants()) do
+            if IsKeyObject(descendant) then
+                local targetPart = GetKeyTargetPart(descendant)
+                if targetPart then
+                    if not TrackedKeys[descendant] then
+                        TrackedKeys[descendant] = { TargetPart = targetPart }
+                    end
+                    if KeyEspEnabled then
+                        CreateKeyESP(descendant)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function CleanupKeys()
+    for keyObj, data in pairs(TrackedKeys) do
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+    end
+    if not AutoFarmEnabled then
+        DisconnectAll(KeyConnections)
+        table.clear(TrackedKeys)
+        table.clear(CollectedKeysHistory)
+    end
+end
+
+local function EnableKeyESP()
+    if KeyEspEnabled then return end
+    KeyEspEnabled = true
+    ScanKeys()
+    for keyObj, _ in pairs(TrackedKeys) do
+        CreateKeyESP(keyObj)
+    end
+
+    local mapsFolder = Workspace:FindFirstChild("Maps")
+    if mapsFolder then
+        MapConnections["KeyMapDescendantAdded"] = mapsFolder.DescendantAdded:Connect(function(descendant)
+            if not KeyEspEnabled then return end
+            task.defer(function()
+                if KeyEspEnabled and IsKeyObject(descendant) then
+                    local targetPart = GetKeyTargetPart(descendant)
+                    if targetPart then
+                        if not TrackedKeys[descendant] then
+                            TrackedKeys[descendant] = { TargetPart = targetPart }
+                        end
+                        CreateKeyESP(descendant)
+                    end
+                end
+            end)
+        end)
+    end
+end
+
+local function DisableKeyESP()
+    if not KeyEspEnabled then return end
+    KeyEspEnabled = false
+    for keyObj, data in pairs(TrackedKeys) do
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+        data.Highlight = nil
+        data.Billboard = nil
+        data.TextLabel = nil
+    end
+    if not AutoFarmEnabled then
+        CleanupKeys()
+    end
+end
+
+-- Hàm kiểm tra xem nhân vật có đang cầm key hay vật phẩm nào trên tay không hoặc kiểm tra balo
+local function CharacterHoldsKey()
+    local char = LocalPlayer.Character
+    if not char then return false end
+    -- Kiểm tra xem có Tool nào đang được equip trên nhân vật không
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") then
+            local name = string.lower(child.Name)
+            if name:find("key") or name:find("lock") or name:find("suo") then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- Hàm tương tác nhanh và tự động bấm ProximityPrompt khi Teleport tới nơi
+local function FastInteractAtPosition(targetPart)
+    if not targetPart or not targetPart.Parent then return end
+    
+    -- Kích hoạt mọi ProximityPrompt gần targetPart
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            local parentPart = obj.Parent
+            if parentPart and parentPart:IsA("BasePart") then
+                if (targetPart.Position - parentPart.Position).Magnitude <= 15 then
+                    pcall(function()
+                        fireproximityprompt(obj)
+                    end)
+                end
+            end
+        end
+    end
+
+    local prompt = targetPart:FindFirstChildWhichIsA("ProximityPrompt", true)
+    if not prompt and targetPart.Parent then
+        prompt = targetPart.Parent:FindFirstChildWhichIsA("ProximityPrompt", true)
+    end
+    if prompt then
+        pcall(function()
+            fireproximityprompt(prompt)
+        end)
+    end
+
+    local clickDet = targetPart:FindFirstChildWhichIsA("ClickDetector", true)
+    if clickDet then
+        pcall(function()
+            fireclickdetector(clickDet)
+        end)
+    end
+
+    pcall(function()
+        firetouchinterest(targetPart, LocalPlayer.Character.HumanoidRootPart, 0)
+        task.wait(0.05)
+        firetouchinterest(targetPart, LocalPlayer.Character.HumanoidRootPart, 1)
+    end)
+end
+
+-- Vòng lặp Auto Farm hoàn chỉnh theo yêu cầu: Lấy Key -> Random mở cửa -> Kiểm tra nhân vật đang cầm -> Tele về cửa và tự động tương tác nhanh
+task.spawn(function()
+    while true do
+        if AutoFarmEnabled then
+            local character = LocalPlayer.Character
+            local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+            
+            if rootPart then
+                ScanKeys()
+                ScanDoors()
+
+                -- 1. Lấy danh sách Key chưa nhặt
+                local availableKeys = {}
+                for keyObj, data in pairs(TrackedKeys) do
+                    if keyObj.Parent and not CollectedKeysHistory[keyObj] then
+                        local part = data.TargetPart or GetKeyTargetPart(keyObj)
+                        if part and part.Parent then
+                            table.insert(availableKeys, {Obj = keyObj, Part = part})
+                        end
+                    end
+                end
+
+                -- 2. Lấy danh sách Cửa chưa mở
+                local availableDoors = {}
+                for door, data in pairs(TrackedDoors) do
+                    if not data.IsOpened and not OpenedDoorsHistory[door] and not IsDoorOpened(door) then
+                        local part = data.TargetPart or GetDoorTargetPart(door)
+                        if part and part.Parent then
+                            table.insert(availableDoors, {Obj = door, Part = part})
+                        end
+                    end
+                end
+
+                -- Xử lý logic: Nếu chưa cầm key/item thì đi lấy key ngẫu nhiên, ngược lại (hoặc nếu có key) thì mở cửa ngẫu nhiên và tele lại tương tác nhanh
+                if #availableKeys > 0 and not CharacterHoldsKey() then
+                    local randomKeyData = availableKeys[math.random(1, #availableKeys)]
+                    if randomKeyData and randomKeyData.Part and randomKeyData.Part.Parent then
+                        rootPart.CFrame = CFrame.new(randomKeyData.Part.Position + Vector3.new(0, 3, 0))
+                        task.wait(0.2)
+                        FastInteractAtPosition(randomKeyData.Part)
+                        task.wait(0.3)
+                        if not randomKeyData.Part.Parent then
+                            MarkKeyCollected(randomKeyData.Obj)
+                        end
+                    end
+                elseif #availableDoors > 0 then
+                    local randomDoorData = availableDoors[math.random(1, #availableDoors)]
+                    if randomDoorData and randomDoorData.Part and randomDoorData.Part.Parent then
+                        rootPart.CFrame = CFrame.new(randomDoorData.Part.Position + Vector3.new(0, 3, 0))
+                        task.wait(0.2)
+                        FastInteractAtPosition(randomDoorData.Part)
+                        task.wait(0.3)
+                        if IsDoorOpened(randomDoorData.Obj) then
+                            MarkDoorOpened(randomDoorData.Obj)
+                        end
+                    end
+                else
+                    task.wait(0.5)
+                end
+            else
+                task.wait(1)
+            end
+        else
+            task.wait(0.5)
+        end
+    end
+end)
+
+--[====================================================================--
+--                         PLAYER ESP LOGIC                            --
+--[====================================================================--
+
+local function DestroyPlayerESP(player)
+    local data = TrackedPlayers[player]
+    if not data then return end
+    if data.Highlight then data.Highlight:Destroy() end
+    if data.Billboard then data.Billboard:Destroy() end
+    TrackedPlayers[player] = nil
+end
+
+local function CreatePlayerESP(player)
+    if not PlayerEspEnabled or player == LocalPlayer or TrackedPlayers[player] then return end
+
+    local character = player.Character
+    if not character or not character.Parent then return end
+
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "PlayerESP"
+    highlight.Adornee = character
+    highlight.FillColor = Color3.fromRGB(0, 255, 0)
+    highlight.FillTransparency = 0.78
+    highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = character
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "PlayerESPLabel"
+    billboard.Adornee = rootPart
+    billboard.Size = UDim2.fromOffset(200, 40)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = character
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.fromScale(1, 1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextColor3 = Color3.fromRGB(50, 255, 50)
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.TextStrokeTransparency = 0
+    label.Text = player.Name .. " | 0m"
+    label.Parent = billboard
+
+    TrackedPlayers[player] = {
+        Highlight = highlight,
+        Billboard = billboard,
+        TextLabel = label,
+        Character = character,
+        RootPart = rootPart
+    }
+
+    PlayerConnections["Ancestry_" .. tostring(player.UserId)] = character.AncestryChanged:Connect(function(_, parent)
+        if not parent then DestroyPlayerESP(player) end
+    end)
+end
+
+local function SetupPlayer(player)
+    if player == LocalPlayer then return end
+    DisconnectConnection(PlayerConnections, "Character_" .. tostring(player.UserId))
+
+    PlayerConnections["Character_" .. tostring(player.UserId)] = player.CharacterAdded:Connect(function(character)
+        if not PlayerEspEnabled then return end
+        DestroyPlayerESP(player)
+
+        local rootPart = character:WaitForChild("HumanoidRootPart", 5)
+        if not rootPart then return end
+
+        task.defer(function()
+            if PlayerEspEnabled and player.Character == character and character.Parent then
+                CreatePlayerESP(player)
+            end
+        end)
+    end)
+
+    if player.Character then
+        task.defer(function()
+            if PlayerEspEnabled then CreatePlayerESP(player) end
+        end)
+    end
+end
+
+local function CleanupPlayers()
+    for player, data in pairs(TrackedPlayers) do
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+    end
+    table.clear(TrackedPlayers)
+
+    for key, connection in pairs(PlayerConnections) do
+        if string.sub(key, 1, 10) == "Character_" or string.sub(key, 1, 9) == "Ancestry_" then
+            connection:Disconnect()
+            PlayerConnections[key] = nil
+        end
+    end
+end
+
+local function EnablePlayerESP()
+    if PlayerEspEnabled then return end
+    PlayerEspEnabled = true
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then SetupPlayer(player) end
+    end
+
+    DisconnectConnection(PlayerConnections, "PlayerAdded")
+    DisconnectConnection(PlayerConnections, "PlayerRemoving")
+
+    PlayerConnections["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
+        if PlayerEspEnabled then SetupPlayer(player) end
+    end)
+
+    PlayerConnections["PlayerRemoving"] = Players.PlayerRemoving:Connect(function(player)
+        DestroyPlayerESP(player)
+        DisconnectConnection(PlayerConnections, "Character_" .. tostring(player.UserId))
+        DisconnectConnection(PlayerConnections, "Ancestry_" .. tostring(player.UserId))
+    end)
+end
+
+local function DisablePlayerESP()
+    if not PlayerEspEnabled then return end
+    PlayerEspEnabled = false
+
+    DisconnectConnection(PlayerConnections, "PlayerAdded")
+    DisconnectConnection(PlayerConnections, "PlayerRemoving")
+    CleanupPlayers()
+end
+
+--[====================================================================--
+--                       REALTIME LOOP & OPTIMIZATION                 --
+--[====================================================================--
+
+local updateTimer = 0
+RunService.RenderStepped:Connect(function(dt)
+    if not MonsterEspEnabled and not DoorEspEnabled and not KeyEspEnabled and not PlayerEspEnabled then return end
+
+    updateTimer += dt
+    if updateTimer >= 0.15 then
+        updateTimer = 0
+        
+        local character = LocalPlayer.Character
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+        if not rootPart then return end
+
+        -- Cập nhật Monster ESP
+        if MonsterEspEnabled then
+            for model, espData in pairs(TrackedMonsters) do
+                if model.Parent and espData.TextLabel then
+                    local targetPart = model:FindFirstChild("HumanoidRootPart") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+                    if targetPart then
+                        local dist = math.floor((rootPart.Position - targetPart.Position).Magnitude)
+                        espData.TextLabel.Text = model.Name .. " | " .. dist .. "m"
+                    end
+                else
+                    DestroyMonsterESP(model)
+                end
+            end
+        end
+
+        -- Cập nhật Door ESP
+        if DoorEspEnabled then
+            for door, espData in pairs(TrackedDoors) do
+                if not espData.IsOpened and door.Parent and espData.TextLabel then
+                    local targetPart = espData.TargetPart or GetDoorTargetPart(door)
+                    if targetPart then
+                        local dist = math.floor((rootPart.Position - targetPart.Position).Magnitude)
+                        espData.TextLabel.Text = "DOOR | " .. dist .. "m"
+                    end
+                else
+                    DestroyDoorESP(door)
+                end
+            end
+        end
+
+        -- Cập nhật Key ESP
+        if KeyEspEnabled then
+            for keyObj, espData in pairs(TrackedKeys) do
+                if keyObj.Parent and espData.TextLabel then
+                    local targetPart = espData.TargetPart or GetKeyTargetPart(keyObj)
+                    if targetPart then
+                        local dist = math.floor((rootPart.Position - targetPart.Position).Magnitude)
+                        espData.TextLabel.Text = "KEY | " .. dist .. "m"
+                    end
+                else
+                    MarkKeyCollected(keyObj)
+                end
+            end
+        end
+
+        -- Cập nhật Player ESP
+        if PlayerEspEnabled then
+            for player, espData in pairs(TrackedPlayers) do
+                if player.Character and player.Character.Parent and espData.TextLabel then
+                    local pRoot = espData.RootPart or player.Character:FindFirstChild("HumanoidRootPart")
+                    if pRoot then
+                        local dist = math.floor((rootPart.Position - pRoot.Position).Magnitude)
+                        espData.TextLabel.Text = player.Name .. " | " .. dist .. "m"
+                    end
+                else
+                    DestroyPlayerESP(player)
+                end
+            end
+        end
+    end
+end)
+
+--[====================================================================--
+--                    MAP / ROUND RESET LOGIC                          --
+--[====================================================================--
+
+local CurrentMap = nil
+
+local function ResetRoundData()
+    if not DoorEspEnabled then 
+        DisconnectAll(DoorConnections)
+        table.clear(TrackedDoors)
+    end
+    if not KeyEspEnabled then 
+        DisconnectAll(KeyConnections)
+        table.clear(TrackedKeys)
+    end
+    table.clear(OpenedDoorsHistory)
+    table.clear(CollectedKeysHistory)
+
+    if PlayerEspEnabled then
+        CleanupPlayers()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then SetupPlayer(player) end
+        end
+    end
+
+    if MonsterEspEnabled then
+        CleanupMonsters()
+    end
+end
+
+local function SetupMapWatcher()
+    local mapsFolder = Workspace:FindFirstChild("Maps")
+    if not mapsFolder then return end
+
+    MapConnections["MapAdded"] = mapsFolder.ChildAdded:Connect(function(newMap)
+        task.wait(0.25)
+        if CurrentMap ~= newMap then
+            CurrentMap = newMap
+            ResetRoundData()
+            task.wait(0.5)
+            ScanDoors()
+            ScanKeys()
+            if DoorEspEnabled then
+                for door, _ in pairs(TrackedDoors) do CreateDoorESP(door) end
+            end
+            if KeyEspEnabled then
+                for keyObj, _ in pairs(TrackedKeys) do CreateKeyESP(keyObj) end
+            end
+            if MonsterEspEnabled then ScanMonsters() end
+        end
+    end)
+
+    MapConnections["MapRemoved"] = mapsFolder.ChildRemoved:Connect(function(oldMap)
+        if oldMap == CurrentMap then
+            CurrentMap = nil
+            ResetRoundData()
+            task.wait(0.25)
+            local newMaps = mapsFolder:GetChildren()
+            if #newMaps > 0 then
+                CurrentMap = newMaps[1]
+                ScanDoors()
+                ScanKeys()
+                if DoorEspEnabled then
+                    for door, _ in pairs(TrackedDoors) do CreateDoorESP(door) end
+                end
+                if KeyEspEnabled then
+                    for keyObj, _ in pairs(TrackedKeys) do CreateKeyESP(keyObj) end
+                end
+                if MonsterEspEnabled then ScanMonsters() end
+            end
+        end
+    end)
+
+    local existingMaps = mapsFolder:GetChildren()
+    if #existingMaps > 0 then
+        CurrentMap = existingMaps[1]
+    end
+end
+
+SetupMapWatcher()
+
+--[====================================================================--
+--                         UI TOGGLE HANDLERS                         --
+--[====================================================================--
+
+MonsterBtn.MouseButton1Click:Connect(function()
+    if MonsterEspEnabled then
+        DisableMonsterESP()
+        MonsterBtn.Text = "Monster ESP: OFF"
+        MonsterBtn.TextColor3 = Color3.fromRGB(200, 50, 50)
+    else
+        EnableMonsterESP()
+        MonsterBtn.Text = "Monster ESP: ON"
+        MonsterBtn.TextColor3 = Color3.fromRGB(50, 255, 50)
+    end
+end)
+
+DoorBtn.MouseButton1Click:Connect(function()
+    if DoorEspEnabled then
+        DisableDoorESP()
+        DoorBtn.Text = "Door ESP: OFF"
+        DoorBtn.TextColor3 = Color3.fromRGB(50, 180, 200)
+    else
+        EnableDoorESP()
+        DoorBtn.Text = "Door ESP: ON"
+        DoorBtn.TextColor3 = Color3.fromRGB(50, 255, 50)
+    end
+end)
+
+KeyBtn.MouseButton1Click:Connect(function()
+    if KeyEspEnabled then
+        DisableKeyESP()
+        KeyBtn.Text = "Key ESP: OFF"
+        KeyBtn.TextColor3 = Color3.fromRGB(255, 220, 50)
+    else
+        EnableKeyESP()
+        KeyBtn.Text = "Key ESP: ON"
+        KeyBtn.TextColor3 = Color3.fromRGB(50, 255, 50)
+    end
+end)
+
+PlayerBtn.MouseButton1Click:Connect(function()
+    if PlayerEspEnabled then
+        DisablePlayerESP()
+        PlayerBtn.Text = "Player ESP: OFF"
+        PlayerBtn.TextColor3 = Color3.fromRGB(50, 200, 50)
+    else
+        EnablePlayerESP()
+        PlayerBtn.Text = "Player ESP: ON"
+        PlayerBtn.TextColor3 = Color3.fromRGB(50, 255, 50)
+    end
+end)
+
+AutoFarmBtn.MouseButton1Click:Connect(function()
+    AutoFarmEnabled = not AutoFarmEnabled
+    if AutoFarmEnabled then
+        AutoFarmBtn.Text = "⚡ AUTO FARM: ON"
+        AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 50)
+    else
+        AutoFarmBtn.Text = "⚡ AUTO FARM: OFF"
+        AutoFarmBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 0)
+    end
+end)
+
+--[====================================================================--
+--                       CLEANUP KHI DESTROY                          --
+--[====================================================================--
+
+ScreenGui.Destroying:Connect(function()
+    DisconnectAll(MonsterConnections)
+    DisconnectAll(DoorConnections)
+    DisconnectAll(KeyConnections)
+    DisconnectAll(PlayerConnections)
+    DisconnectAll(MapConnections)
+
+    CleanupMonsters()
+    CleanupDoors()
+    CleanupKeys()
+    CleanupPlayers()
+    table.clear(OpenedDoorsHistory)
+    table.clear(CollectedKeysHistory)
+end)
