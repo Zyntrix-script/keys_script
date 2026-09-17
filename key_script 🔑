@@ -1839,3 +1839,678 @@ print(
     "| Copy ID: ON",
     "| Anti-Duplicate: ON"
 )
+--========================================================--
+-- ZYNTRIX VIP PRIME • EMOTE UI ADD-ON
+-- DÁN NGUYÊN KHỐI NÀY Ở CUỐI SCRIPT
+-- UI: PURPLE / BLUE / CYAN
+-- TAB: HOME / EMOTE / ITEMS / GAMES / SETTINGS
+-- MOBILE • DRAGGABLE • GLASS • NEON
+--========================================================--
+
+task.spawn(function()
+
+    local Players = game:GetService("Players")
+    local UIS = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
+    local CoreGui = game:GetService("CoreGui")
+
+    local LP = Players.LocalPlayer
+
+    --====================================================--
+    -- COLORS
+    --====================================================--
+
+    local BG      = Color3.fromRGB(10,8,15)
+    local CARD    = Color3.fromRGB(21,15,28)
+    local CARD2   = Color3.fromRGB(30,18,40)
+
+    local PURPLE  = Color3.fromRGB(155,45,255)
+    local PURPLE2 = Color3.fromRGB(90,25,150)
+
+    local BLUE    = Color3.fromRGB(45,110,255)
+    local CYAN    = Color3.fromRGB(0,225,255)
+
+    local GREEN   = Color3.fromRGB(0,255,140)
+    local RED     = Color3.fromRGB(255,55,90)
+
+    local WHITE   = Color3.fromRGB(245,245,250)
+    local GRAY    = Color3.fromRGB(150,145,160)
+
+    --====================================================--
+    -- REMOVE OLD ADDON
+    --====================================================--
+
+    pcall(function()
+        local Old = CoreGui:FindFirstChild("ZYNTRIX_EMOTE_PRIME")
+        if Old then
+            Old:Destroy()
+        end
+    end)
+
+    --====================================================--
+    -- GUI
+    --====================================================--
+
+    local GUI = Instance.new("ScreenGui")
+    GUI.Name = "ZYNTRIX_EMOTE_PRIME"
+    GUI.ResetOnSpawn = false
+    GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    GUI.DisplayOrder = 999999
+    GUI.Parent = CoreGui
+
+    --====================================================--
+    -- MAIN
+    --====================================================--
+
+    local Main = Instance.new("Frame")
+    Main.Name = "MainFrame"
+    Main.Parent = GUI
+    Main.Size = UDim2.new(0,620,0,370)
+    Main.Position = UDim2.new(0.5,-310,0.5,-185)
+    Main.BackgroundColor3 = BG
+    Main.BackgroundTransparency = 0.08
+    Main.BorderSizePixel = 0
+    Main.Active = true
+    Main.ClipsDescendants = true
+
+    Instance.new("UICorner",Main).CornerRadius = UDim.new(0,14)
+
+    local MainStroke = Instance.new("UIStroke")
+    MainStroke.Parent = Main
+    MainStroke.Color = PURPLE
+    MainStroke.Thickness = 1.7
+
+    local GlowStroke = Instance.new("UIStroke")
+    GlowStroke.Parent = Main
+    GlowStroke.Color = BLUE
+    GlowStroke.Thickness = 5
+    GlowStroke.Transparency = 0.82
+
+    --====================================================--
+    -- TOP BAR
+    --====================================================--
+
+    local TopBar = Instance.new("Frame")
+    TopBar.Parent = Main
+    TopBar.Size = UDim2.new(1,0,0,55)
+    TopBar.BackgroundTransparency = 1
+    TopBar.ZIndex = 5
+
+    --====================================================--
+    -- LOGO
+    --====================================================--
+
+    local Logo = Instance.new("TextLabel")
+    Logo.Parent = TopBar
+    Logo.Position = UDim2.new(0,12,0,9)
+    Logo.Size = UDim2.new(0,38,0,38)
+    Logo.BackgroundColor3 = Color3.fromRGB(35,18,48)
+    Logo.Text = "Z"
+    Logo.Font = Enum.Font.GothamBold
+    Logo.TextSize = 20
+    Logo.TextColor3 = WHITE
+    Logo.BorderSizePixel = 0
+    Logo.ZIndex = 10
+
+    Instance.new("UICorner",Logo).CornerRadius = UDim.new(1,0)
+
+    local LogoStroke = Instance.new("UIStroke")
+    LogoStroke.Parent = Logo
+    LogoStroke.Color = PURPLE
+    LogoStroke.Thickness = 1.5
+
+    --====================================================--
+    -- TITLE
+    --====================================================--
+
+    local Title = Instance.new("TextLabel")
+    Title.Parent = TopBar
+    Title.Position = UDim2.new(0,60,0,7)
+    Title.Size = UDim2.new(0,300,0,25)
+    Title.BackgroundTransparency = 1
+    Title.Text = "ZYNTRIX VIP PRIME"
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 17
+    Title.TextColor3 = WHITE
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 10
+
+    local TitleGradient = Instance.new("UIGradient")
+    TitleGradient.Parent = Title
+    TitleGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,WHITE),
+        ColorSequenceKeypoint.new(0.3,PURPLE),
+        ColorSequenceKeypoint.new(0.6,BLUE),
+        ColorSequenceKeypoint.new(0.85,CYAN),
+        ColorSequenceKeypoint.new(1,PURPLE)
+    })
+
+    local Subtitle = Instance.new("TextLabel")
+    Subtitle.Parent = TopBar
+    Subtitle.Position = UDim2.new(0,61,0,30)
+    Subtitle.Size = UDim2.new(0,300,0,16)
+    Subtitle.BackgroundTransparency = 1
+    Subtitle.Text = "EMOTE HUB • MOBILE • PRIME"
+    Subtitle.Font = Enum.Font.GothamMedium
+    Subtitle.TextSize = 7
+    Subtitle.TextColor3 = GRAY
+    Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    Subtitle.ZIndex = 10
+
+    --====================================================--
+    -- MIN
+    --====================================================--
+
+    local MinBtn = Instance.new("TextButton")
+    MinBtn.Parent = TopBar
+    MinBtn.Position = UDim2.new(1,-82,0,9)
+    MinBtn.Size = UDim2.new(0,35,0,35)
+    MinBtn.BackgroundColor3 = CARD
+    MinBtn.Text = "-"
+    MinBtn.TextColor3 = WHITE
+    MinBtn.TextSize = 18
+    MinBtn.Font = Enum.Font.GothamBold
+    MinBtn.AutoButtonColor = false
+    MinBtn.BorderSizePixel = 0
+    MinBtn.ZIndex = 10
+
+    Instance.new("UICorner",MinBtn).CornerRadius = UDim.new(0,9)
+
+    local MinStroke = Instance.new("UIStroke")
+    MinStroke.Parent = MinBtn
+    MinStroke.Color = PURPLE
+    MinStroke.Thickness = 1.2
+
+    --====================================================--
+    -- CLOSE
+    --====================================================--
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Parent = TopBar
+    CloseBtn.Position = UDim2.new(1,-42,0,9)
+    CloseBtn.Size = UDim2.new(0,35,0,35)
+    CloseBtn.BackgroundColor3 = CARD
+    CloseBtn.Text = "×"
+    CloseBtn.TextColor3 = WHITE
+    CloseBtn.TextSize = 18
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.AutoButtonColor = false
+    CloseBtn.BorderSizePixel = 0
+    CloseBtn.ZIndex = 10
+
+    Instance.new("UICorner",CloseBtn).CornerRadius = UDim.new(0,9)
+
+    local CloseStroke = Instance.new("UIStroke")
+    CloseStroke.Parent = CloseBtn
+    CloseStroke.Color = PURPLE
+    CloseStroke.Thickness = 1.2
+
+    --====================================================--
+    -- SIDEBAR
+    --====================================================--
+
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Parent = Main
+    Sidebar.Position = UDim2.new(0,10,0,62)
+    Sidebar.Size = UDim2.new(0,145,0,295)
+    Sidebar.BackgroundTransparency = 1
+
+    local SidebarButtons = {}
+
+    local function CreateSide(Name,Text,Y,Active)
+
+        local B = Instance.new("TextButton")
+        B.Name = Name
+        B.Parent = Sidebar
+        B.Position = UDim2.new(0,0,0,Y)
+        B.Size = UDim2.new(1,0,0,48)
+        B.BackgroundColor3 =
+            Active and Color3.fromRGB(80,25,110) or CARD
+        B.BackgroundTransparency =
+            Active and 0 or 0.12
+        B.Text = "  "..Text
+        B.TextColor3 =
+            Active and WHITE or Color3.fromRGB(205,195,215)
+        B.TextSize = 12
+        B.Font = Enum.Font.GothamBold
+        B.TextXAlignment = Enum.TextXAlignment.Left
+        B.AutoButtonColor = false
+        B.BorderSizePixel = 0
+
+        Instance.new("UICorner",B).CornerRadius = UDim.new(0,10)
+
+        local S = Instance.new("UIStroke")
+        S.Parent = B
+        S.Color = PURPLE
+        S.Thickness = 1
+        S.Transparency = Active and 0.05 or 0.45
+
+        SidebarButtons[Name] = {
+            Button = B,
+            Stroke = S
+        }
+
+        return B
+    end
+
+    local HomeBtn =
+        CreateSide("Home","HOME",0,true)
+
+    -- CONTROL ĐÃ ĐỔI THÀNH EMOTE
+    local EmoteBtn =
+        CreateSide("Emote","EMOTE",58,false)
+
+    local ItemsBtn =
+        CreateSide("Items","ITEMS",116,false)
+
+    local GamesBtn =
+        CreateSide("Games","GAMES",174,false)
+
+    local SettingsBtn =
+        CreateSide("Settings","SETTINGS",232,false)
+
+    --====================================================--
+    -- CONTENT
+    --====================================================--
+
+    local Content = Instance.new("Frame")
+    Content.Parent = Main
+    Content.Position = UDim2.new(0,165,0,62)
+    Content.Size = UDim2.new(0,445,0,295)
+    Content.BackgroundTransparency = 1
+
+    --====================================================--
+    -- EMOTE INFO
+    --====================================================--
+
+    local Info = Instance.new("Frame")
+    Info.Parent = Content
+    Info.Size = UDim2.new(0,343,0,115)
+    Info.BackgroundColor3 = CARD
+    Info.BackgroundTransparency = 0.05
+    Info.BorderSizePixel = 0
+
+    Instance.new("UICorner",Info).CornerRadius = UDim.new(0,10)
+
+    local InfoStroke = Instance.new("UIStroke")
+    InfoStroke.Parent = Info
+    InfoStroke.Color = PURPLE
+    InfoStroke.Transparency = 0.25
+
+    local InfoTitle = Instance.new("TextLabel")
+    InfoTitle.Parent = Info
+    InfoTitle.Position = UDim2.new(0,12,0,10)
+    InfoTitle.Size = UDim2.new(1,-24,0,25)
+    InfoTitle.BackgroundTransparency = 1
+    InfoTitle.Text = "EMOTE SYSTEM"
+    InfoTitle.Font = Enum.Font.GothamBold
+    InfoTitle.TextSize = 14
+    InfoTitle.TextColor3 = WHITE
+    InfoTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+    local InfoGradient = Instance.new("UIGradient")
+    InfoGradient.Parent = InfoTitle
+    InfoGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,WHITE),
+        ColorSequenceKeypoint.new(0.5,PURPLE),
+        ColorSequenceKeypoint.new(1,CYAN)
+    })
+
+    local Status = Instance.new("TextLabel")
+    Status.Parent = Info
+    Status.Position = UDim2.new(0,12,0,40)
+    Status.Size = UDim2.new(1,-24,0,22)
+    Status.BackgroundTransparency = 1
+    Status.Text = "● EMOTE SYSTEM READY"
+    Status.Font = Enum.Font.GothamBold
+    Status.TextSize = 9
+    Status.TextColor3 = GREEN
+    Status.TextXAlignment = Enum.TextXAlignment.Left
+
+    local Desc = Instance.new("TextLabel")
+    Desc.Parent = Info
+    Desc.Position = UDim2.new(0,12,0,68)
+    Desc.Size = UDim2.new(1,-24,0,35)
+    Desc.BackgroundTransparency = 1
+    Desc.Text =
+        "Animation / Catalog / Saved emotes\nare still controlled by the original system."
+    Desc.Font = Enum.Font.Gotham
+    Desc.TextSize = 8
+    Desc.TextColor3 = GRAY
+    Desc.TextWrapped = true
+    Desc.TextXAlignment = Enum.TextXAlignment.Left
+    Desc.TextYAlignment = Enum.TextYAlignment.Top
+
+    --====================================================--
+    -- ACTIVE BUTTON
+    --====================================================--
+
+    local OpenEmote = Instance.new("TextButton")
+    OpenEmote.Parent = Content
+    OpenEmote.Position = UDim2.new(0,0,0,125)
+    OpenEmote.Size = UDim2.new(0,343,0,45)
+    OpenEmote.BackgroundColor3 = Color3.fromRGB(70,25,100)
+    OpenEmote.Text = "OPEN EMOTE HUB"
+    OpenEmote.TextColor3 = WHITE
+    OpenEmote.TextSize = 11
+    OpenEmote.Font = Enum.Font.GothamBold
+    OpenEmote.AutoButtonColor = false
+    OpenEmote.BorderSizePixel = 0
+
+    Instance.new("UICorner",OpenEmote).CornerRadius = UDim.new(0,9)
+
+    local OpenStroke = Instance.new("UIStroke")
+    OpenStroke.Parent = OpenEmote
+    OpenStroke.Color = CYAN
+    OpenStroke.Thickness = 1.2
+
+    --====================================================--
+    -- STATUS BOX
+    --====================================================--
+
+    local StatusBox = Instance.new("Frame")
+    StatusBox.Parent = Content
+    StatusBox.Position = UDim2.new(0,0,0,180)
+    StatusBox.Size = UDim2.new(0,343,0,72)
+    StatusBox.BackgroundColor3 = CARD2
+    StatusBox.BackgroundTransparency = 0.08
+    StatusBox.BorderSizePixel = 0
+
+    Instance.new("UICorner",StatusBox).CornerRadius = UDim.new(0,9)
+
+    local StatusStroke = Instance.new("UIStroke")
+    StatusStroke.Parent = StatusBox
+    StatusStroke.Color = PURPLE
+    StatusStroke.Transparency = 0.3
+
+    local StatusText = Instance.new("TextLabel")
+    StatusText.Parent = StatusBox
+    StatusText.Position = UDim2.new(0,12,0,8)
+    StatusText.Size = UDim2.new(1,-24,0,22)
+    StatusText.BackgroundTransparency = 1
+    StatusText.Text = "ZYNTRIX EMOTE"
+    StatusText.Font = Enum.Font.GothamBold
+    StatusText.TextSize = 10
+    StatusText.TextColor3 = CYAN
+    StatusText.TextXAlignment = Enum.TextXAlignment.Left
+
+    local Hint = Instance.new("TextLabel")
+    Hint.Parent = StatusBox
+    Hint.Position = UDim2.new(0,12,0,32)
+    Hint.Size = UDim2.new(1,-24,0,30)
+    Hint.BackgroundTransparency = 1
+    Hint.Text =
+        "Use the original Gaze Emotes controls.\nPress G to toggle the original hub."
+    Hint.Font = Enum.Font.Gotham
+    Hint.TextSize = 8
+    Hint.TextColor3 = GRAY
+    Hint.TextWrapped = true
+    Hint.TextXAlignment = Enum.TextXAlignment.Left
+
+    --====================================================--
+    -- MINI
+    --====================================================--
+
+    local Mini = Instance.new("TextButton")
+    Mini.Name = "OpenButton"
+    Mini.Parent = GUI
+    Mini.Position = UDim2.new(0,18,0.5,-25)
+    Mini.Size = UDim2.new(0,50,0,50)
+    Mini.BackgroundColor3 = BG
+    Mini.Text = "Z"
+    Mini.TextColor3 = WHITE
+    Mini.TextSize = 20
+    Mini.Font = Enum.Font.GothamBold
+    Mini.Visible = false
+    Mini.AutoButtonColor = false
+    Mini.BorderSizePixel = 0
+
+    Instance.new("UICorner",Mini).CornerRadius = UDim.new(1,0)
+
+    local MiniStroke = Instance.new("UIStroke")
+    MiniStroke.Parent = Mini
+    MiniStroke.Color = PURPLE
+    MiniStroke.Thickness = 2
+
+    --====================================================--
+    -- SIDEBAR ACTIVE
+    --====================================================--
+
+    local function Activate(Name)
+
+        for ButtonName,Data in pairs(SidebarButtons) do
+
+            local Active = ButtonName == Name
+
+            Data.Button.BackgroundColor3 =
+                Active
+                and Color3.fromRGB(80,25,110)
+                or CARD
+
+            Data.Button.BackgroundTransparency =
+                Active and 0 or 0.12
+
+            Data.Button.TextColor3 =
+                Active
+                and WHITE
+                or Color3.fromRGB(205,195,215)
+
+            Data.Stroke.Transparency =
+                Active and 0.05 or 0.45
+        end
+    end
+
+    HomeBtn.MouseButton1Click:Connect(function()
+        Activate("Home")
+        Status.Text = "● EMOTE SYSTEM READY"
+    end)
+
+    EmoteBtn.MouseButton1Click:Connect(function()
+        Activate("Emote")
+        Status.Text = "● EMOTE HUB ACTIVE"
+        OpenEmote:Activate()
+    end)
+
+    ItemsBtn.MouseButton1Click:Connect(function()
+        Activate("Items")
+        Status.Text = "● ITEMS MODULE"
+    end)
+
+    GamesBtn.MouseButton1Click:Connect(function()
+        Activate("Games")
+        Status.Text = "● GAME MODULE"
+    end)
+
+    SettingsBtn.MouseButton1Click:Connect(function()
+        Activate("Settings")
+        Status.Text = "● SETTINGS"
+    end)
+
+    --====================================================--
+    -- OPEN ORIGINAL GAZE UI
+    --====================================================--
+
+    local function OpenOriginal()
+
+        pcall(function()
+
+            local Gaze =
+                CoreGui:FindFirstChild("GazeEmoteGUI")
+
+            if Gaze then
+                Gaze.Enabled = true
+            end
+
+        end)
+
+    end
+
+    OpenEmote.MouseButton1Click:Connect(OpenOriginal)
+
+    --====================================================--
+    -- HIDE / SHOW
+    --====================================================--
+
+    local function Hide()
+
+        Main.Visible = false
+        Mini.Visible = true
+
+    end
+
+    local function Show()
+
+        Mini.Visible = false
+        Main.Visible = true
+
+    end
+
+    MinBtn.Activated:Connect(Hide)
+    CloseBtn.Activated:Connect(Hide)
+    Mini.Activated:Connect(Show)
+
+    --====================================================--
+    -- DRAG MOBILE / PC
+    --====================================================--
+
+    local Dragging = false
+    local DragStart
+    local StartPosition
+
+    TopBar.InputBegan:Connect(function(Input)
+
+        if Input.UserInputType ==
+            Enum.UserInputType.Touch
+            or Input.UserInputType ==
+            Enum.UserInputType.MouseButton1 then
+
+            Dragging = true
+            DragStart = Input.Position
+            StartPosition = Main.Position
+
+            Input.Changed:Connect(function()
+
+                if Input.UserInputState ==
+                    Enum.UserInputState.End then
+
+                    Dragging = false
+
+                end
+
+            end)
+
+        end
+
+    end)
+
+    UIS.InputChanged:Connect(function(Input)
+
+        if not Dragging then
+            return
+        end
+
+        if Input.UserInputType ==
+            Enum.UserInputType.Touch
+            or Input.UserInputType ==
+            Enum.UserInputType.MouseMovement then
+
+            local Delta =
+                Input.Position - DragStart
+
+            Main.Position = UDim2.new(
+                StartPosition.X.Scale,
+                StartPosition.X.Offset + Delta.X,
+                StartPosition.Y.Scale,
+                StartPosition.Y.Offset + Delta.Y
+            )
+
+        end
+
+    end)
+
+    --====================================================--
+    -- TITLE SHIMMER
+    --====================================================--
+
+    task.spawn(function()
+
+        while GUI.Parent do
+
+            TitleGradient.Offset =
+                Vector2.new(-1,0)
+
+            local Tween =
+                TweenService:Create(
+                    TitleGradient,
+                    TweenInfo.new(
+                        2.4,
+                        Enum.EasingStyle.Linear
+                    ),
+                    {
+                        Offset = Vector2.new(1,0)
+                    }
+                )
+
+            Tween:Play()
+            Tween.Completed:Wait()
+
+        end
+
+    end)
+
+    --====================================================--
+    -- SPARKLE
+    --====================================================--
+
+    task.spawn(function()
+
+        while GUI.Parent do
+
+            if Main.Visible then
+
+                local Spark =
+                    Instance.new("Frame")
+
+                Spark.Parent = Main
+                Spark.BackgroundColor3 = CYAN
+                Spark.BorderSizePixel = 0
+                Spark.Size = UDim2.fromOffset(2,2)
+                Spark.Position = UDim2.new(
+                    math.random(5,95)/100,
+                    0,
+                    math.random(8,92)/100,
+                    0
+                )
+                Spark.ZIndex = 50
+
+                Instance.new("UICorner",Spark)
+                    .CornerRadius = UDim.new(1,0)
+
+                local Fade =
+                    TweenService:Create(
+                        Spark,
+                        TweenInfo.new(0.55),
+                        {
+                            BackgroundTransparency = 1,
+                            Size = UDim2.fromOffset(5,5)
+                        }
+                    )
+
+                Fade:Play()
+                Fade.Completed:Wait()
+
+                if Spark and Spark.Parent then
+                    Spark:Destroy()
+                end
+
+            end
+
+            task.wait(
+                math.random(4,9)/10
+            )
+
+        end
+
+    end)
+
+end)
