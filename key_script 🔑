@@ -1,1765 +1,1662 @@
 --============================================================--
---              ZYNTRIX VIP PRIME
---             ANIMATION HUB • 32 PACK
---============================================================--
--- HỆ THỐNG:
--- • 2 ẢNH THUMBNAIL RIÊNG: UI + MENU
--- • CHỮ RƠI
--- • SAO / BONG BÓNG LẤP LÁNH
--- • VIỀN RGB CHẠY
--- • MÀU CHẠY TOÀN UI
--- • HIỆU ỨNG MỞ / ĐÓNG
--- • MOBILE + KÉO
--- • TỰ KHÔI PHỤC SAU HỒI SINH
--- • TỰ ÁP DỤNG LẠI PACK
--- • TÌM KIẾM PACK
--- • TRANG TỰ SINH
--- • PACK TỰ SINH
--- • COMING SOON
--- • HỖ TRỢ ADDON CUỐI SCRIPT
+-- ZYNTRIX VIP PRIME • ANIMATION HUB
+-- FULL FIXED VERSION
 --============================================================--
 
 --============================================================--
---                         CẤU HÌNH
---============================================================--
-
-local ID_ANH_UI = "rbxassetid://6293835670"
-local ID_ANH_MENU = "rbxassetid://145787888"
-
-local TEN_GUI = "ZYNTRIX_VIP_PRIME"
-
-local TEN_HIEN_THI = "ZYNTRIX VIP PRIME"
-local TEN_PHU = "ANIMATION HUB • 32 PACK"
-
-local RONG_GUI = 620
-local CAO_GUI = 370
-
-local MÀU_NỀN = Color3.fromRGB(8,7,15)
-local MÀU_CARD = Color3.fromRGB(14,11,25)
-local MÀU_TÍM = Color3.fromRGB(145,70,255)
-local MÀU_XANH = Color3.fromRGB(0,210,255)
-local MÀU_HONG = Color3.fromRGB(255,70,190)
-local MÀU_XANH_LA = Color3.fromRGB(0,255,150)
-local MÀU_TRANG = Color3.fromRGB(255,255,255)
-local MÀU_MO = Color3.fromRGB(150,150,170)
-
-local DO_TRONG_SUOT = 0.28
-
---============================================================--
---                         DỊCH VỤ
+-- SERVICES
 --============================================================--
 
 local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
-local NguoiChoi = Players.LocalPlayer
+local LocalPlayer = Players.LocalPlayer
 
 --============================================================--
---                       XÓA GUI CŨ
+-- GLOBAL CLEANUP
 --============================================================--
+
+local ENV
 
 pcall(function()
-    local GuiCu = game.CoreGui:FindFirstChild(TEN_GUI)
-    if GuiCu then
-        GuiCu:Destroy()
+    ENV = getgenv()
+end)
+
+if not ENV then
+    ENV = _G
+end
+
+pcall(function()
+    if ENV.ZYNTRIX_ANIMATION_CLEANUP then
+        ENV.ZYNTRIX_ANIMATION_CLEANUP()
     end
 end)
 
-pcall(function()
-    local GuiCu = NguoiChoi.PlayerGui:FindFirstChild(TEN_GUI)
-    if GuiCu then
-        GuiCu:Destroy()
-    end
-end)
+local Connections = {}
+local Gui
 
---============================================================--
---                    DANH SÁCH PACK
---============================================================--
-
-local GoiHoatHinh = {
-
-["Adidas Aura"] = {
-    Walk=83842218823011, Run=118320322718866,
-    Jump=109996626521204, Fall=95603166884636,
-    Climb=97824616490448, Swim=134530128383903,
-    SwimIdle=94922130551805, Idle1=110211186840347,
-    Idle2=114191137265065
-},
-
-["Adidas Community"] = {
-    Walk=122150855457006, Run=82598234841035,
-    Jump=75290611992385, Fall=98600215928904,
-    Climb=88763136693023, Swim=133308483266208,
-    SwimIdle=109346520324160, Idle1=122257458498464,
-    Idle2=102357151005774
-},
-
-["Adidas Sports"] = {
-    Walk=18537392113, Run=18537384940,
-    Jump=18537380791, Fall=18537367238,
-    Climb=18537363391, Swim=18537389531,
-    SwimIdle=18537387180, Idle1=18537376492,
-    Idle2=18537371272
-},
-
-["Astronaut"] = {
-    Walk=10921046031, Run=10921039308,
-    Jump=10921042494, Fall=10921040576,
-    Climb=10921032124, Swim=10921044000,
-    SwimIdle=10921045006, Idle1=10921034824,
-    Idle2=10921036806
-},
-
-["Bubbly"] = {
-    Walk=910034870, Run=910025107,
-    Jump=910016857, Fall=910001910,
-    Climb=909997997, Swim=910028158,
-    SwimIdle=910030921, Idle1=910004836,
-    Idle2=910009958
-},
-
-["Cartoon"] = {
-    Walk=742640026, Run=742638842,
-    Jump=742637942, Fall=742637151,
-    Climb=742636889, Swim=742639220,
-    SwimIdle=742639812, Idle1=742637544,
-    Idle2=742638445
-},
-
-["Catwalk Glam"] = {
-    Walk=109168724482748, Run=81024476153754,
-    Jump=116936326516985, Fall=92294537340807,
-    Climb=119377220967554, Swim=134591743181628,
-    SwimIdle=98854111361360, Idle1=133806214992291,
-    Idle2=94970088341563
-},
-
-["Elder"] = {
-    Walk=10921111375, Run=10921104374,
-    Jump=10921107367, Fall=10921105765,
-    Climb=10921100400, Swim=10921108971,
-    SwimIdle=10921110146, Idle1=10921101664,
-    Idle2=10921102574
-},
-
-["Levitation"] = {
-    Walk=616013216, Run=616010382,
-    Jump=616008936, Fall=616005863,
-    Climb=616003713, Swim=616011509,
-    SwimIdle=616012453, Idle1=616006778,
-    Idle2=616008087
-},
-
-["Mage"] = {
-    Walk=10921152678, Run=10921148209,
-    Jump=10921149743, Fall=10921148939,
-    Climb=10921143404, Swim=10921150788,
-    SwimIdle=10921151661, Idle1=10921144709,
-    Idle2=10921145797
-},
-
-["Ninja"] = {
-    Walk=10921162768, Run=10921157929,
-    Jump=10921160088, Fall=10921159222,
-    Climb=10921154678, Swim=10921161002,
-    SwimIdle=10922757002, Idle1=10921155160,
-    Idle2=10921155867
-},
-
-["Oldschool"] = {
-    Walk=10921244891, Run=10921240218,
-    Jump=10921242013, Fall=10921241244,
-    Climb=10921229866, Swim=10921243048,
-    SwimIdle=10921244018, Idle1=10921230744,
-    Idle2=10921232093
-},
-
-["Robot"] = {
-    Walk=10921255446, Run=10921250460,
-    Jump=10921252123, Fall=10921251156,
-    Climb=10921247141, Swim=10921253767,
-    SwimIdle=10921253767, Idle1=10921248039,
-    Idle2=10921248831
-},
-
-["Stylish"] = {
-    Walk=10921276116, Run=10921283326,
-    Jump=10921279832, Fall=10921278648,
-    Climb=10921271391, Swim=10921273958,
-    SwimIdle=10921272275, Idle1=10921278648,
-    Idle2=10921279832
-},
-
-["Superhero"] = {
-    Walk=10921298616, Run=10921291831,
-    Jump=10921294559, Fall=10921293373,
-    Climb=10921286911, Swim=10921295495,
-    SwimIdle=10921297391, Idle1=10921288909,
-    Idle2=10921290167
-},
-
-["Toy"] = {
-    Walk=10921312010, Run=10921306285,
-    Jump=10921308158, Fall=10921307241,
-    Climb=10921300839, Swim=10921309319,
-    SwimIdle=10921310341, Idle1=10921301576,
-    Idle2=10921302207
-},
-
-["Vampire"] = {
-    Walk=10921326949, Run=10921320299,
-    Jump=10921322186, Fall=10921321317,
-    Climb=10921314188, Swim=10921324408,
-    SwimIdle=10921325443, Idle1=10921315373,
-    Idle2=10921315373
-},
-
-["Werewolf"] = {
-    Walk=10921342074, Run=10921336997,
-    Jump=10921338912, Fall=10921337907,
-    Climb=10921329322, Swim=10921340419,
-    SwimIdle=10921341319, Idle1=10921330408,
-    Idle2=10921333667
-},
-
-["Zombie"] = {
-    Walk=10921355261, Run=616163682,
-    Jump=10921351278, Fall=10921350320,
-    Climb=10921343576, Swim=10921352344,
-    SwimIdle=10921353442, Idle1=10921344533,
-    Idle2=10921345304
-},
-
-["NFL"] = {
-    Walk=110358958299415, Run=117333533048078,
-    Jump=119846112151352, Fall=129773241321032,
-    Climb=134630013742019, Swim=132697394189921,
-    SwimIdle=79090109939093, Idle1=92080889861410,
-    Idle2=74451233229259
-},
-
-["No Boundaries"] = {
-    Walk=18747074203, Run=18747070484,
-    Jump=18747069148, Fall=18747062535,
-    Climb=18747060903, Swim=18747073181,
-    SwimIdle=18747071682, Idle1=18747067405,
-    Idle2=18747063918
-},
-
-["Amazon Unboxed"] = {
-    Walk=90478085024465, Run=134824450619865,
-    Jump=121454505477205, Fall=94788218468396,
-    Climb=121145883950231, Swim=105962919001086,
-    SwimIdle=129126268464847, Idle1=98281136301627
-},
-
-["Wicked Popular"] = {
-    Walk=92072849924640, Run=72301599441680,
-    Jump=104325245285198, Fall=121152442762481,
-    Climb=131326830509784, Swim=99384245425157,
-    SwimIdle=113199415118199, Idle1=118832222982049,
-    Idle2=76049494037641
-},
-
-['Wicked "Dancing Through Life"'] = {
-    Walk=73718308412641, Run=135515454877967,
-    Jump=78508480717326, Fall=78147885297412,
-    Climb=129447497744818, Swim=110657013921774,
-    SwimIdle=129183123083281, Idle1=92849173543269,
-    Idle2=132238900951109
-},
-
-["Glitch Animation Pack Roblox"] = {
-    Walk=70532084598346, Run=133291236719695,
-    Jump=87784517289295, Fall=88817521039352,
-    Climb=99974229390885, Swim=70788156947773,
-    SwimIdle=124314548544388, Idle1=118195246541519
-},
-
-["Cute Roblox"] = {
-    Walk=140409718187215, Run=118375157537412,
-    Jump=132381016103721, Fall=77496925287217,
-    Climb=86318575131600, Swim=95599821412670,
-    SwimIdle=132170981486619, Idle1=85735421117197,
-    Idle2=136463789054516
-},
-
-["Furry Animation Pack Roblox"] = {
-    Walk=104011441852459, Run=87770060317862,
-    Jump=102635582722041, Fall=137079985547592,
-    Climb=76660530164497, Swim=99909547692332,
-    SwimIdle=82429732905677, Idle1=111821292044705,
-    Idle2=90705157329932
-},
-
-["Gói hoạt hình cổ tích"] = {
-    Bundle=107350693632269,
-    Walk=104155388409994,
-    Run=85214521829644,
-    Idle1=117086336235203,
-    Idle2=126081566479327,
-    Swim=81730236977194,
-    SwimIdle=129566463958031,
-    Climb=92601441790709,
-    Jump=101319668376661,
-    Fall=78205337706161
-},
-
-["Gói hoạt hình kiếm kép"] = {
-    Bundle=122770822556243,
-    Walk=133373623053068,
-    Run=126476138839957,
-    Idle1=81578950337746,
-    Idle2=112871358653281,
-    Swim=87435870674395,
-    SwimIdle=90091920351380,
-    Climb=139966022555892,
-    Jump=121960612860366,
-    Fall=111755954298423
-},
-
-["Gói hoạt hình Boss Mini Me"] = {
-    Bundle=76401293400730,
-    Walk=75106887290061,
-    Run=110721243894880,
-    Idle1=108196521384991,
-    Idle2=106594115601501,
-    Swim=112165407090966,
-    SwimIdle=135930711226111,
-    Climb=89290802291547,
-    Jump=122885535842193,
-    Fall=94257318048288
-},
-
-["Gói hoạt hình chibi dễ thương"] = {
-    Bundle=52466328299272,
-    Walk=111012968948132,
-    Run=87544781988481,
-    Idle1=97384777119919,
-    Idle2=128055646531003,
-    Swim=97153834582507,
-    SwimIdle=109521754177979,
-    Climb=70774577087790,
-    Jump=85629495208423,
-    Fall=85731989945385
-},
-
-["Sự bay lơ lửng thần thiên vô tận"] = {
-    Bundle=249945300329160,
-    Walk=108629385247325,
-    Run=118409763401495,
-    Idle1=91463760153972,
-    Swim=80379634228103,
-    SwimIdle=127353527524703,
-    Climb=107930575903717,
-    Jump=101407222641916,
-    Fall=82924474222458
-},
-
-}
-
---============================================================--
---                        ADDON
---============================================================--
--- THÊM PACK:
---
--- ["Tên Pack Mới"] = {
---     Walk = 123,
---     Run = 456,
---     Jump = 789,
---     Fall = 111,
---     Climb = 222,
---     Swim = 333,
---     SwimIdle = 444,
---     Idle1 = 555,
---     Idle2 = 666
--- },
---
--- THÊM CHỨC NĂNG:
---
--- ["TÊN TRANG"] = {
---     {
---         Ten = "TÊN CHỨC NĂNG",
---         MoTa = "Mô tả chức năng",
---         Ham = function()
---             print("Chức năng mới")
---         end
---     }
--- }
---
--- Chỉ cần thêm vào ADDON.
--- GUI tự nhận.
---============================================================--
-
-local ADDON_PACK = {
-
-    -- Ví dụ:
-    -- ["Pack Mới"] = {
-    --     Walk = 123456789,
-    --     Run = 987654321,
-    --     Jump = 123456789,
-    --     Fall = 987654321,
-    --     Idle1 = 123456789,
-    --     Idle2 = 987654321
-    -- },
-
-}
-
-local ADDON_CHUC_NANG = {
-
-    ["TRANG CHỦ"] = {
-
-        -- Thêm chức năng TRANG CHỦ ở đây.
-
-    },
-
-    ["ĐIỀU KHIỂN"] = {
-
-        {
-            Ten = "TỰ KHÔI PHỤC HỒI SINH",
-            MoTa = "Tự áp dụng lại pack sau khi nhân vật hồi sinh",
-            Ham = function()
-                -- Hệ thống này luôn hoạt động.
-            end
-        },
-
-    },
-
-    ["TRÒ CHƠI"] = {
-
-        -- Thêm chức năng TRÒ CHƠI ở đây.
-
-    },
-
-    ["CÀI ĐẶT"] = {
-
-        {
-            Ten = "HIỆU ỨNG GIAO DIỆN",
-            MoTa = "Hệ thống hiệu ứng LED đang hoạt động",
-            Ham = function()
-                print("Hiệu ứng giao diện đang hoạt động")
-            end
-        },
-
-    },
-
-}
-
--- Gộp ADDON PACK
-for Ten,DuLieu in pairs(ADDON_PACK) do
-    GoiHoatHinh[Ten] = DuLieu
+local function Connect(signal, callback)
+    local connection = signal:Connect(callback)
+    table.insert(Connections, connection)
+    return connection
 end
 
 --============================================================--
---                         GUI
+-- CONFIG
 --============================================================--
 
-local Gui = Instance.new("ScreenGui")
-Gui.Name = TEN_GUI
+local ICON = " "
+
+-- UI THUMBNAIL
+local UI_IMAGE =
+    "rbxthumb://type=Asset&id=6293835670&w=420&h=420"
+
+-- MENU THUMBNAIL
+local MENU_IMAGE =
+    "rbxthumb://type=Asset&id=145787888&w=420&h=420"
+
+local UI_NAME = "ZYNTRIX VIP PRIME"
+
+local function UIText(text)
+    return tostring(text) .. ICON
+end
+
+--============================================================--
+-- REMOVE OLD GUI
+--============================================================--
+
+pcall(function()
+    local old = CoreGui:FindFirstChild("ZyntrixAnimationHub")
+    if old then
+        old:Destroy()
+    end
+end)
+
+--============================================================--
+-- PACK DATABASE
+--============================================================--
+
+local AnimationPacks = {
+
+    ["Adidas Aura"] = {
+        Walk=83842218823011, Run=118320322718866,
+        Jump=109996626521204, Fall=95603166884636,
+        Climb=97824616490448, Swim=134530128383903,
+        SwimIdle=94922130551805, Idle1=110211186840347,
+        Idle2=114191137265065
+    },
+
+    ["Adidas Community"] = {
+        Walk=122150855457006, Run=82598234841035,
+        Jump=75290611992385, Fall=98600215928904,
+        Climb=88763136693023, Swim=133308483266208,
+        SwimIdle=109346520324160, Idle1=122257458498464,
+        Idle2=102357151005774
+    },
+
+    ["Adidas Sports"] = {
+        Walk=18537392113, Run=18537384940,
+        Jump=18537380791, Fall=18537367238,
+        Climb=18537363391, Swim=18537389531,
+        SwimIdle=18537387180, Idle1=18537376492,
+        Idle2=18537371272
+    },
+
+    ["Astronaut"] = {
+        Walk=10921046031, Run=10921039308,
+        Jump=10921042494, Fall=10921040576,
+        Climb=10921032124, Swim=10921044000,
+        SwimIdle=10921045006, Idle1=10921034824
+    },
+
+    ["Bubbly"] = {
+        Walk=910034870, Run=910025107,
+        Jump=910016857, Fall=910001910,
+        Climb=909997997, Swim=910028158,
+        SwimIdle=910030921, Idle1=910004836,
+        Idle2=910009958
+    },
+
+    ["Cartoon"] = {
+        Walk=742640026, Run=742638842,
+        Jump=742637942, Fall=742637151,
+        Climb=742636889, Swim=742639220,
+        SwimIdle=742639812, Idle1=742637544,
+        Idle2=742638445
+    },
+
+    ["Catwalk Glam"] = {
+        Walk=109168724482748, Run=81024476153754,
+        Jump=116936326516985, Fall=92294537340807,
+        Climb=119377220967554, Swim=134591743181628,
+        SwimIdle=98854111361360, Idle1=133806214992291,
+        Idle2=94970088341563
+    },
+
+    ["Elder"] = {
+        Walk=10921111375, Run=10921104374,
+        Jump=10921107367, Fall=10921105765,
+        Climb=10921100400, Swim=10921108971,
+        SwimIdle=10921110146, Idle1=10921101664,
+        Idle2=10921102574
+    },
+
+    ["Levitation"] = {
+        Walk=616013216, Run=616010382,
+        Jump=616008936, Fall=616005863,
+        Climb=616003713, Swim=616011509,
+        SwimIdle=616012453, Idle1=616006778,
+        Idle2=616008087
+    },
+
+    ["Mage"] = {
+        Walk=10921152678, Run=10921148209,
+        Jump=10921149743, Fall=10921148939,
+        Climb=10921143404, Swim=10921150788,
+        SwimIdle=10921151661, Idle1=10921144709,
+        Idle2=10921145797
+    },
+
+    ["Ninja"] = {
+        Walk=10921162768, Run=10921157929,
+        Jump=10921160088, Fall=10921159222,
+        Climb=10921154678, Swim=10921161002,
+        SwimIdle=10922757002, Idle1=10921155160,
+        Idle2=10921155867
+    },
+
+    ["Oldschool"] = {
+        Walk=10921244891, Run=10921240218,
+        Jump=10921242013, Fall=10921241244,
+        Climb=10921229866, Swim=10921243048,
+        SwimIdle=10921244018, Idle1=10921230744,
+        Idle2=10921232093
+    },
+
+    ["Robot"] = {
+        Walk=10921255446, Run=10921250460,
+        Jump=10921252123, Fall=10921251156,
+        Climb=10921247141, Swim=10921253767,
+        SwimIdle=10921253767, Idle1=10921248039,
+        Idle2=10921248831
+    },
+
+    ["Stylish"] = {
+        Walk=10921276116, Run=10921283326,
+        Jump=10921279832, Fall=10921278648,
+        Climb=10921271391, Swim=10921273958,
+        SwimIdle=10921272275, Idle1=10921278648,
+        Idle2=10921279832
+    },
+
+    ["Superhero"] = {
+        Walk=10921298616, Run=10921291831,
+        Jump=10921291831, Fall=10921293373,
+        Climb=10921286911, Swim=10921295495,
+        SwimIdle=10921297391, Idle1=10921288909,
+        Idle2=10921290167
+    },
+
+    ["Toy"] = {
+        Walk=10921312010, Run=10921306285,
+        Jump=10921308158, Fall=10921307241,
+        Climb=10921300839, Swim=10921309319,
+        SwimIdle=10921310341, Idle1=10921301576,
+        Idle2=10921302207
+    },
+
+    ["Vampire"] = {
+        Walk=10921326949, Run=10921320299,
+        Jump=10921322186, Fall=10921321317,
+        Climb=10921314188, Swim=10921324408,
+        SwimIdle=10921325443, Idle1=10921315373,
+        Idle2=10921315373
+    },
+
+    ["Werewolf"] = {
+        Walk=10921342074, Run=10921336997,
+        Jump=10921338912, Fall=10921337907,
+        Climb=10921329322, Swim=10921340419,
+        SwimIdle=10921341319, Idle1=10921330408,
+        Idle2=10921333667
+    },
+
+    ["Zombie"] = {
+        Walk=10921355261, Run=616163682,
+        Jump=10921351278, Fall=10921350320,
+        Climb=10921343576, Swim=10921352344,
+        SwimIdle=10921353442, Idle1=10921344533,
+        Idle2=10921345304
+    },
+
+    ["NFL"] = {
+        Walk=110358958299415, Run=117333533048078,
+        Jump=119846112151352, Fall=129773241321032,
+        Climb=134630013742019, Swim=132697394189921,
+        SwimIdle=79090109939093, Idle1=92080889861410,
+        Idle2=74451233229259
+    },
+
+    ["No Boundaries"] = {
+        Walk=18747074203, Run=18747070484,
+        Jump=18747069148, Fall=18747062535,
+        Climb=18747060903, Swim=18747073181,
+        SwimIdle=18747071682, Idle1=18747067405,
+        Idle2=18747063918
+    },
+
+    ["Amazon Unboxed"] = {
+        Walk=90478085024465, Run=134824450619865,
+        Jump=121454505477205, Fall=94788218468396,
+        Climb=121145883950231, Swim=105962919001086,
+        SwimIdle=129126268464847, Idle1=98281136301627
+    },
+
+    ["Wicked Popular"] = {
+        Walk=92072849924640, Run=72301599441680,
+        Jump=104325245285198, Fall=121152442762481,
+        Climb=131326830509784, Swim=99384245425157,
+        SwimIdle=113199415118199, Idle1=118832222982049,
+        Idle2=76049494037641
+    },
+
+    ['Wicked "Dancing Through Life"'] = {
+        Walk=73718308412641, Run=135515454877967,
+        Jump=78508480717326, Fall=78147885297412,
+        Climb=129447497744818, Swim=110657013921774,
+        SwimIdle=129183123083281, Idle1=92849173543269,
+        Idle2=132238900951109
+    },
+
+    ["Glitch Animation Pack Roblox"] = {
+        Walk=70532084598346, Run=133291236719695,
+        Jump=87784517289295, Fall=88817521039352,
+        Climb=99974229390885, Swim=70788156947773,
+        SwimIdle=124314548544388, Idle1=118195246541519
+    },
+
+    ["Cute Roblox"] = {
+        Walk=140409718187215, Run=118375157537412,
+        Jump=132381016103721, Fall=77496925287217,
+        Climb=86318575131600, Swim=95599821412670,
+        SwimIdle=132170981486619, Idle1=85735421117197,
+        Idle2=136463789054516
+    },
+
+    ["Furry Animation Pack Roblox"] = {
+        Walk=104011441852459, Run=87770060317862,
+        Jump=102635582722041, Fall=137079985547592,
+        Climb=76660530164497, Swim=99909547692332,
+        SwimIdle=82429732905677, Idle1=111821292044705,
+        Idle2=90705157329932
+    },
+
+    ["Gói hoạt hình cổ tích"] = {
+        Bundle=107350693632269,
+        Walk=104155388409994,
+        Run=85214521829644,
+        Idle1=117086336235203,
+        Idle2=126081566479327,
+        Swim=81730236977194,
+        SwimIdle=129566463958031,
+        Climb=92601441790709,
+        Jump=101319668376661,
+        Fall=78205337706161
+    },
+
+    ["Gói hoạt hình kiếm kép"] = {
+        Bundle=122770822556243,
+        Walk=133373623053068,
+        Run=126476138839957,
+        Idle1=81578950337746,
+        Idle2=112871358653281,
+        Swim=87435870674395,
+        SwimIdle=90091920351380,
+        Climb=139966022555892,
+        Jump=121960612860366,
+        Fall=111755954298423
+    },
+
+    ["Gói hoạt hình Boss Mini Me"] = {
+        Bundle=76401293400730,
+        Walk=75106887290061,
+        Run=110721243894880,
+        Idle1=108196521384991,
+        Idle2=106594115601501,
+        Swim=112165407090966,
+        SwimIdle=135930711226111,
+        Climb=89290802291547,
+        Jump=122885535842193,
+        Fall=94257318048288
+    },
+
+    ["Gói hoạt hình chibi dễ thương"] = {
+        Bundle=52466328299272,
+        Walk=111012968948132,
+        Run=87544781988481,
+        Idle1=97384777119919,
+        Idle2=128055646531003,
+        Swim=97153834582507,
+        SwimIdle=109521754177979,
+        Climb=70774577087790,
+        Jump=85629495208423,
+        Fall=85731989945385
+    },
+
+    ["Sự bay lơ lửng thần thiên vô tận"] = {
+        Bundle=249945300329160,
+        Walk=108629385247325,
+        Run=118409763401495,
+        Idle1=91463760153972,
+        Swim=80379634228103,
+        SwimIdle=127353527524703,
+        Climb=107930575903717,
+        Jump=101407222641916,
+        Fall=82924474222458
+    }
+}
+
+--============================================================--
+-- ADDON AREA
+-- ADD NEW PACKS HERE
+--============================================================--
+
+-- Ví dụ:
+--
+-- AnimationPacks["My New Pack"] = {
+--     Walk = 123456789,
+--     Run = 123456789,
+--     Jump = 123456789,
+--     Fall = 123456789,
+--     Climb = 123456789,
+--     Swim = 123456789,
+--     SwimIdle = 123456789,
+--     Idle1 = 123456789,
+--     Idle2 = 123456789
+-- }
+
+--============================================================--
+-- FEATURE DATABASE
+--============================================================--
+
+local FeaturePages = {
+
+    ["TRANG CHỦ"] = {},
+
+    ["ĐIỀU KHIỂN"] = {
+        {
+            Name = "TỰ KHÔI PHỤC HỒI SINH",
+            Description = "Tự áp dụng lại pack sau khi nhân vật hồi sinh.",
+            Action = function()
+                if ENV.ZYNTRIX_SELECTED_PACK then
+                    return true
+                end
+                return false
+            end
+        }
+    },
+
+    ["GÓI HOẠT HÌNH"] = {
+        {
+            Name = "QUẢN LÝ GÓI HOẠT HÌNH",
+            Description = "Chọn và áp dụng Animation Pack.",
+            Action = function()
+                return true
+            end
+        }
+    },
+
+    ["TRÒ CHƠI"] = {},
+
+    ["CÀI ĐẶT"] = {
+        {
+            Name = "HIỆU ỨNG GIAO DIỆN",
+            Description = "Bật hoặc tắt hiệu ứng giao diện.",
+            Action = function()
+                return true
+            end
+        }
+    }
+}
+
+--============================================================--
+-- STATE
+--============================================================--
+
+local SelectedPack = nil
+local EffectsEnabled = true
+local ReapplyToken = 0
+
+ENV.ZYNTRIX_SELECTED_PACK = nil
+
+--============================================================--
+-- CREATE GUI FIRST
+--============================================================--
+
+Gui = Instance.new("ScreenGui")
+Gui.Name = "ZyntrixAnimationHub"
 Gui.ResetOnSpawn = false
 Gui.IgnoreGuiInset = true
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Gui.Parent = game.CoreGui
+Gui.Parent = CoreGui
 
 --============================================================--
---                       HÀM TIỆN ÍCH
+-- COLORS
 --============================================================--
 
-local function TaoBoGoc(DoiTuong,DoBo)
-    local Goc = Instance.new("UICorner")
-    Goc.CornerRadius = UDim.new(0,DoBo or 10)
-    Goc.Parent = DoiTuong
-    return Goc
+local AccentColor = Color3.fromRGB(0, 220, 255)
+local DarkColor = Color3.fromRGB(7, 8, 18)
+local PanelColor = Color3.fromRGB(12, 14, 28)
+local WhiteColor = Color3.fromRGB(240, 250, 255)
+
+local ColorTargets = {}
+
+local function RegisterColor(object, property)
+    table.insert(ColorTargets, {
+        Object = object,
+        Property = property
+    })
 end
 
-local function TaoVien(DoiTuong,DoDay)
-    local Vien = Instance.new("UIStroke")
-    Vien.Thickness = DoDay or 1.5
-    Vien.Transparency = 0.05
-    Vien.Color = MÀU_TÍM
-    Vien.Parent = DoiTuong
+local function AddCorner(object, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 10)
+    corner.Parent = object
+    return corner
+end
 
-    task.spawn(function()
-        local ThoiGian = 0
+local function AddStroke(object, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = thickness or 1
+    stroke.Color = AccentColor
+    stroke.Transparency = 0.15
+    stroke.Parent = object
 
-        while Vien.Parent do
-            ThoiGian += 0.025
+    RegisterColor(stroke, "Color")
 
-            local R = (math.sin(ThoiGian)+1)/2
-            local G = (math.sin(ThoiGian+2)+1)/2
-            local B = (math.sin(ThoiGian+4)+1)/2
+    return stroke
+end
 
-            Vien.Color = Color3.new(R,G,B)
+local function AddPadding(object, value)
+    local padding = Instance.new("UIPadding")
+    padding.PaddingTop = UDim.new(0, value)
+    padding.PaddingBottom = UDim.new(0, value)
+    padding.PaddingLeft = UDim.new(0, value)
+    padding.PaddingRight = UDim.new(0, value)
+    padding.Parent = object
+    return padding
+end
 
-            task.wait()
+--============================================================--
+-- BACKGROUND
+--============================================================--
+
+local Background = Instance.new("Frame")
+Background.Name = "Background"
+Background.Size = UDim2.fromScale(1, 1)
+Background.BackgroundColor3 = Color3.fromRGB(2, 3, 8)
+Background.BorderSizePixel = 0
+Background.Parent = Gui
+
+--============================================================--
+-- MAIN WINDOW
+--============================================================--
+
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 620, 0, 390)
+Main.Position = UDim2.new(0.5, -310, 0.5, -195)
+Main.BackgroundColor3 = PanelColor
+Main.BackgroundTransparency = 0.12
+Main.BorderSizePixel = 0
+Main.ClipsDescendants = true
+Main.Parent = Gui
+
+AddCorner(Main, 16)
+AddStroke(Main, 1.5)
+
+--============================================================--
+-- TOP BAR
+--============================================================--
+
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 58)
+TopBar.BackgroundColor3 = Color3.fromRGB(9, 10, 23)
+TopBar.BackgroundTransparency = 0.05
+TopBar.BorderSizePixel = 0
+TopBar.Parent = Main
+
+AddCorner(TopBar, 16)
+
+local TitleImage = Instance.new("ImageLabel")
+TitleImage.Size = UDim2.new(0, 42, 0, 42)
+TitleImage.Position = UDim2.new(0, 10, 0, 8)
+TitleImage.BackgroundTransparency = 1
+TitleImage.Image = UI_IMAGE
+TitleImage.Parent = TopBar
+
+AddCorner(TitleImage, 10)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -145, 0, 26)
+Title.Position = UDim2.new(0, 62, 0, 7)
+Title.BackgroundTransparency = 1
+Title.Text = UIText("ZYNTRIX VIP PRIME")
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 17
+Title.TextColor3 = WhiteColor
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, -145, 0, 20)
+Subtitle.Position = UDim2.new(0, 63, 0, 31)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = UIText("ANIMATION HUB • 32 PACK")
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.TextSize = 10
+Subtitle.TextColor3 = Color3.fromRGB(130, 190, 210)
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+Subtitle.Parent = TopBar
+
+--============================================================--
+-- CLOSE / MINIMIZE
+--============================================================--
+
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.new(0, 38, 0, 38)
+Minimize.Position = UDim2.new(1, -86, 0, 10)
+Minimize.BackgroundColor3 = Color3.fromRGB(15, 18, 35)
+Minimize.Text = UIText("−")
+Minimize.Font = Enum.Font.GothamBold
+Minimize.TextSize = 20
+Minimize.TextColor3 = WhiteColor
+Minimize.BorderSizePixel = 0
+Minimize.Parent = TopBar
+
+AddCorner(Minimize, 10)
+AddStroke(Minimize, 1)
+
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.new(0, 38, 0, 38)
+Close.Position = UDim2.new(1, -43, 0, 10)
+Close.BackgroundColor3 = Color3.fromRGB(15, 18, 35)
+Close.Text = UIText("×")
+Close.Font = Enum.Font.GothamBold
+Close.TextSize = 19
+Close.TextColor3 = WhiteColor
+Close.BorderSizePixel = 0
+Close.Parent = TopBar
+
+AddCorner(Close, 10)
+AddStroke(Close, 1)
+
+--============================================================--
+-- SIDEBAR
+--============================================================--
+
+local Sidebar = Instance.new("Frame")
+Sidebar.Name = "Sidebar"
+Sidebar.Size = UDim2.new(0, 145, 1, -70)
+Sidebar.Position = UDim2.new(0, 10, 0, 65)
+Sidebar.BackgroundColor3 = Color3.fromRGB(8, 10, 21)
+Sidebar.BackgroundTransparency = 0.05
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = Main
+
+AddCorner(Sidebar, 12)
+AddStroke(Sidebar, 1)
+
+local SidebarList = Instance.new("UIListLayout")
+SidebarList.Padding = UDim.new(0, 7)
+SidebarList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+SidebarList.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarList.Parent = Sidebar
+
+AddPadding(Sidebar, 10)
+
+--============================================================--
+-- CONTENT
+--============================================================--
+
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, -170, 1, -70)
+Content.Position = UDim2.new(0, 160, 0, 65)
+Content.BackgroundColor3 = Color3.fromRGB(8, 10, 21)
+Content.BackgroundTransparency = 0.03
+Content.BorderSizePixel = 0
+Content.ClipsDescendants = true
+Content.Parent = Main
+
+AddCorner(Content, 12)
+AddStroke(Content, 1)
+
+--============================================================--
+-- PAGE TITLE
+--============================================================--
+
+local PageTitle = Instance.new("TextLabel")
+PageTitle.Size = UDim2.new(1, -24, 0, 38)
+PageTitle.Position = UDim2.new(0, 12, 0, 8)
+PageTitle.BackgroundTransparency = 1
+PageTitle.Text = UIText("TRANG CHỦ")
+PageTitle.Font = Enum.Font.GothamBold
+PageTitle.TextSize = 18
+PageTitle.TextColor3 = WhiteColor
+PageTitle.TextXAlignment = Enum.TextXAlignment.Left
+PageTitle.Parent = Content
+
+--============================================================--
+-- MENU BUTTON
+--============================================================--
+
+local MenuButton = Instance.new("ImageButton")
+MenuButton.Name = "MenuButton"
+MenuButton.Size = UDim2.new(0, 52, 0, 52)
+MenuButton.Position = UDim2.new(0, 18, 0.5, -26)
+MenuButton.BackgroundColor3 = Color3.fromRGB(8, 12, 25)
+MenuButton.BackgroundTransparency = 0.05
+MenuButton.Image = MENU_IMAGE
+MenuButton.BorderSizePixel = 0
+MenuButton.Visible = false
+MenuButton.Parent = Gui
+
+AddCorner(MenuButton, 14)
+AddStroke(MenuButton, 1.5)
+
+--============================================================--
+-- MOBILE DRAG
+--============================================================--
+
+local function MakeDraggable(object, handle)
+    handle = handle or object
+
+    local dragging = false
+    local dragStart
+    local startPosition
+
+    Connect(handle.InputBegan, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+            dragging = true
+            dragStart = input.Position
+            startPosition = object.Position
+
+            local changed
+            changed = input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    changed:Disconnect()
+                end
+            end)
         end
     end)
 
-    return Vien
-end
-
-local function TaoChu(DoiTuong,NoiDung,KichThuoc,Mau)
-    local Chu = Instance.new("TextLabel")
-    Chu.BackgroundTransparency = 1
-    Chu.Text = NoiDung .. " "
-    Chu.TextColor3 = Mau or MÀU_TRANG
-    Chu.Font = Enum.Font.GothamBold
-    Chu.TextSize = KichThuoc or 11
-    Chu.TextXAlignment = Enum.TextXAlignment.Left
-    Chu.Parent = DoiTuong
-    return Chu
-end
-
-local function TaoNut(DoiTuong,NoiDung,Mau)
-    local Nut = Instance.new("TextButton")
-    Nut.BackgroundColor3 = Mau or MÀU_TÍM
-    Nut.BackgroundTransparency = 0.05
-    Nut.BorderSizePixel = 0
-    Nut.Text = NoiDung .. " "
-    Nut.TextColor3 = MÀU_TRANG
-    Nut.Font = Enum.Font.GothamBold
-    Nut.TextSize = 9
-    Nut.AutoButtonColor = false
-    Nut.Parent = DoiTuong
-
-    TaoBoGoc(Nut,8)
-    TaoVien(Nut,1)
-
-    return Nut
-end
-
---============================================================--
---                       KHUNG CHÍNH
---============================================================--
-
-local Khung = Instance.new("Frame")
-Khung.Name = "KhungChinh"
-Khung.Size = UDim2.fromOffset(RONG_GUI,CAO_GUI)
-Khung.Position = UDim2.new(0.5,-RONG_GUI/2,0.5,-CAO_GUI/2)
-Khung.BackgroundColor3 = MÀU_NỀN
-Khung.BackgroundTransparency = DO_TRONG_SUOT
-Khung.BorderSizePixel = 0
-Khung.ClipsDescendants = true
-Khung.Parent = Gui
-
-TaoBoGoc(Khung,16)
-TaoVien(Khung,2)
-
---============================================================--
---                    LỚP HIỆU ỨNG NỀN
---============================================================--
-
-local LopHieuUng = Instance.new("Frame")
-LopHieuUng.Name = "LopHieuUng"
-LopHieuUng.Size = UDim2.fromScale(1,1)
-LopHieuUng.BackgroundTransparency = 1
-LopHieuUng.ClipsDescendants = true
-LopHieuUng.ZIndex = 2
-LopHieuUng.Parent = Khung
-
---============================================================--
---                       ẢNH UI
---============================================================--
-
-local AnhUI = Instance.new("ImageLabel")
-AnhUI.Size = UDim2.fromOffset(42,42)
-AnhUI.Position = UDim2.fromOffset(12,9)
-AnhUI.BackgroundTransparency = 1
-AnhUI.Image = ID_ANH_UI
-AnhUI.ScaleType = Enum.ScaleType.Crop
-AnhUI.ZIndex = 20
-AnhUI.Parent = Khung
-
-TaoBoGoc(AnhUI,10)
-TaoVien(AnhUI,1.5)
-
---============================================================--
---                         TIÊU ĐỀ
---============================================================--
-
-local TieuDe = Instance.new("TextLabel")
-TieuDe.Size = UDim2.new(1,-170,0,25)
-TieuDe.Position = UDim2.fromOffset(62,7)
-TieuDe.BackgroundTransparency = 1
-TieuDe.Text = TEN_HIEN_THI .. " "
-TieuDe.TextColor3 = MÀU_TRANG
-TieuDe.Font = Enum.Font.GothamBold
-TieuDe.TextSize = 16
-TieuDe.TextXAlignment = Enum.TextXAlignment.Left
-TieuDe.ZIndex = 20
-TieuDe.Parent = Khung
-
-local PhuDe = Instance.new("TextLabel")
-PhuDe.Size = UDim2.new(1,-170,0,20)
-PhuDe.Position = UDim2.fromOffset(62,30)
-PhuDe.BackgroundTransparency = 1
-PhuDe.Text = TEN_PHU .. " "
-PhuDe.TextColor3 = MÀU_XANH
-PhuDe.Font = Enum.Font.GothamMedium
-PhuDe.TextSize = 10
-PhuDe.TextXAlignment = Enum.TextXAlignment.Left
-PhuDe.ZIndex = 20
-PhuDe.Parent = Khung
-
---============================================================--
---                         NÚT ĐÓNG
---============================================================--
-
-local NutDong = TaoNut(Khung,"×",Color3.fromRGB(45,15,55))
-NutDong.Name = "NutDong"
-NutDong.Size = UDim2.fromOffset(35,35)
-NutDong.Position = UDim2.new(1,-45,0,10)
-NutDong.TextSize = 18
-NutDong.ZIndex = 30
-
---============================================================--
---                         THANH BÊN
---============================================================--
-
-local ThanhBen = Instance.new("Frame")
-ThanhBen.Name = "ThanhBen"
-ThanhBen.Size = UDim2.fromOffset(145,295)
-ThanhBen.Position = UDim2.fromOffset(10,62)
-ThanhBen.BackgroundColor3 = MÀU_CARD
-ThanhBen.BackgroundTransparency = 0.12
-ThanhBen.BorderSizePixel = 0
-ThanhBen.ZIndex = 10
-ThanhBen.Parent = Khung
-
-TaoBoGoc(ThanhBen,12)
-TaoVien(ThanhBen,1)
-
---============================================================--
---                         NỘI DUNG
---============================================================--
-
-local NoiDung = Instance.new("Frame")
-NoiDung.Name = "NoiDung"
-NoiDung.Size = UDim2.new(1,-165,1,-72)
-NoiDung.Position = UDim2.fromOffset(155,62)
-NoiDung.BackgroundTransparency = 1
-NoiDung.ZIndex = 10
-NoiDung.Parent = Khung
-
---============================================================--
---                        TRẠNG THÁI
---============================================================--
-
-local TrangHienTai = "TRANG CHỦ"
-local GoiDangChon = nil
-
-local CacNutTrang = {}
-
---============================================================--
---                       TẠO NÚT TRANG
---============================================================--
-
-local function TaoNutTrang(Ten,Icon)
-    local Nut = Instance.new("TextButton")
-
-    Nut.Size = UDim2.new(1,-16,0,40)
-    Nut.BackgroundColor3 = Color3.fromRGB(20,15,32)
-    Nut.BackgroundTransparency = 0.2
-    Nut.BorderSizePixel = 0
-    Nut.Text = Icon .. " " .. Ten .. " "
-    Nut.TextColor3 = Color3.fromRGB(205,205,220)
-    Nut.Font = Enum.Font.GothamBold
-    Nut.TextSize = 10
-    Nut.AutoButtonColor = false
-    Nut.ZIndex = 20
-    Nut.Parent = ThanhBen
-
-    TaoBoGoc(Nut,9)
-    TaoVien(Nut,1)
-
-    table.insert(CacNutTrang,Nut)
-
-    return Nut
-end
-
-local NutTrangChu = TaoNutTrang("TRANG CHỦ","⌂")
-NutTrangChu.Position = UDim2.fromOffset(8,10)
-
-local NutDieuKhien = TaoNutTrang("ĐIỀU KHIỂN","⚙")
-NutDieuKhien.Position = UDim2.fromOffset(8,56)
-
-local NutGoi = TaoNutTrang("GÓI HOẠT HÌNH","★")
-NutGoi.Position = UDim2.fromOffset(8,102)
-
-local NutTroChoi = TaoNutTrang("TRÒ CHƠI","◆")
-NutTroChoi.Position = UDim2.fromOffset(8,148)
-
-local NutCaiDat = TaoNutTrang("CÀI ĐẶT","◌")
-NutCaiDat.Position = UDim2.fromOffset(8,194)
-
---============================================================--
---                       XÓA NỘI DUNG
---============================================================--
-
-local function XoaNoiDung()
-    for _,DoiTuong in ipairs(NoiDung:GetChildren()) do
-        DoiTuong:Destroy()
-    end
-end
-
---============================================================--
---                       COMING SOON
---============================================================--
-
-local function TaoComingSoon()
-    local KhungCS = Instance.new("Frame")
-
-    KhungCS.Size = UDim2.new(1,-10,1,-10)
-    KhungCS.Position = UDim2.fromOffset(5,5)
-    KhungCS.BackgroundColor3 = MÀU_CARD
-    KhungCS.BackgroundTransparency = 0.12
-    KhungCS.BorderSizePixel = 0
-    KhungCS.Parent = NoiDung
-
-    TaoBoGoc(KhungCS,14)
-    TaoVien(KhungCS,1.5)
-
-    local Chu = Instance.new("TextLabel")
-    Chu.Size = UDim2.new(1,0,0,45)
-    Chu.Position = UDim2.new(0,0,0.34,0)
-    Chu.BackgroundTransparency = 1
-    Chu.Text = "COMING SOON "
-    Chu.TextColor3 = MÀU_TRANG
-    Chu.Font = Enum.Font.GothamBlack
-    Chu.TextSize = 23
-    Chu.TextXAlignment = Enum.TextXAlignment.Center
-    Chu.Parent = KhungCS
-
-    local MoTa = Instance.new("TextLabel")
-    MoTa.Size = UDim2.new(1,-30,0,40)
-    MoTa.Position = UDim2.new(0,15,0.49,0)
-    MoTa.BackgroundTransparency = 1
-    MoTa.Text = "Có thể thêm chức năng hoặc pack tại ADDON "
-    MoTa.TextColor3 = MÀU_MO
-    MoTa.Font = Enum.Font.GothamMedium
-    MoTa.TextSize = 10
-    MoTa.TextXAlignment = Enum.TextXAlignment.Center
-    MoTa.Parent = KhungCS
-end
-
---============================================================--
---                    HỆ THỐNG ANIMATION
---============================================================--
-
-local function DatID(DoiTuong,ID)
-    if not DoiTuong or not DoiTuong:IsA("Animation") or not ID then
-        return
-    end
-
-    DoiTuong.AnimationId = "rbxassetid://" .. tostring(ID)
-end
-
-local function DatAnimation(Animate,Ten,ID)
-    if not ID then
-        return
-    end
-
-    local Tim = Animate:FindFirstChild(Ten)
-
-    if Tim then
-
-        if Tim:IsA("Animation") then
-            DatID(Tim,ID)
+    Connect(UserInputService.InputChanged, function(input)
+        if not dragging then
             return
         end
 
-        if Tim:IsA("Folder") then
-            local Animation = Tim:FindFirstChildWhichIsA("Animation",true)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
 
-            if Animation then
-                DatID(Animation,ID)
-            else
-                local AnimationMoi = Instance.new("Animation")
-                AnimationMoi.Name = "Animation"
-                AnimationMoi.AnimationId = "rbxassetid://" .. tostring(ID)
-                AnimationMoi.Parent = Tim
-            end
+            local delta = input.Position - dragStart
 
-            return
-        end
-    end
-
-    local TimSau = Animate:FindFirstChild(Ten,true)
-
-    if TimSau and TimSau:IsA("Animation") then
-        DatID(TimSau,ID)
-    end
-end
-
-local function DatIdle(Animate,DuLieu)
-    local Idle = Animate:FindFirstChild("idle")
-
-    if not Idle then
-        return
-    end
-
-    if DuLieu.Idle1 then
-        local A1 = Idle:FindFirstChild("Animation1")
-
-        if A1 and A1:IsA("Animation") then
-            DatID(A1,DuLieu.Idle1)
-        end
-    end
-
-    if DuLieu.Idle2 then
-        local A2 = Idle:FindFirstChild("Animation2")
-
-        if A2 and A2:IsA("Animation") then
-            DatID(A2,DuLieu.Idle2)
-        end
-    end
-end
-
---============================================================--
---                       ÁP DỤNG PACK
---============================================================--
-
-local function ApDungGoi(TenGoi)
-    local DuLieu = GoiHoatHinh[TenGoi]
-
-    if not DuLieu then
-        return false
-    end
-
-    local NhanVat = NguoiChoi.Character
-
-    if not NhanVat then
-        return false
-    end
-
-    local Humanoid = NhanVat:FindFirstChildOfClass("Humanoid")
-    local Animate = NhanVat:FindFirstChild("Animate")
-
-    if not Humanoid or not Animate then
-        return false
-    end
-
-    -- Dừng animation cũ
-    pcall(function()
-        for _,Track in ipairs(Humanoid:GetPlayingAnimationTracks()) do
-            Track:Stop(0.05)
+            object.Position = UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
         end
     end)
+end
 
-    -- Gán animation
-    DatAnimation(Animate,"walk",DuLieu.Walk)
-    DatAnimation(Animate,"run",DuLieu.Run)
-    DatAnimation(Animate,"jump",DuLieu.Jump)
-    DatAnimation(Animate,"fall",DuLieu.Fall)
-    DatAnimation(Animate,"climb",DuLieu.Climb)
-    DatAnimation(Animate,"swim",DuLieu.Swim)
-    DatAnimation(Animate,"swimidle",DuLieu.SwimIdle)
+MakeDraggable(Main, TopBar)
+MakeDraggable(MenuButton)
 
-    DatIdle(Animate,DuLieu)
+--============================================================--
+-- PAGE SYSTEM
+--============================================================--
 
-    -- Lưu pack đang dùng
-    GoiDangChon = TenGoi
+local PageButtons = {}
+local CurrentPage = nil
 
-    -- Khởi động lại hệ thống Animate
+local function ClearContent()
+    for _, child in ipairs(Content:GetChildren()) do
+        if child ~= PageTitle
+        and not child:IsA("UIStroke")
+        and not child:IsA("UICorner") then
+            child:Destroy()
+        end
+    end
+end
+
+local function ShowComingSoon()
+    ClearContent()
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -30, 0, 80)
+    label.Position = UDim2.new(0, 15, 0.5, -40)
+    label.BackgroundTransparency = 1
+    label.Text = UIText("COMING SOON")
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 25
+    label.TextColor3 = AccentColor
+    label.Parent = Content
+end
+
+--============================================================--
+-- ANIMATION SYSTEM
+--============================================================--
+
+local function AnimationObject(parent, name, animationId)
+    local object = parent:FindFirstChild(name)
+
+    if not object then
+        object = Instance.new("Animation")
+        object.Name = name
+        object.Parent = parent
+    end
+
+    object.AnimationId = "rbxassetid://" .. tostring(animationId)
+
+    return object
+end
+
+local function SetAnimation(container, name, animationId)
+    if not container or not animationId then
+        return
+    end
+
+    local object = container:FindFirstChild(name)
+
+    if not object then
+        object = Instance.new("Animation")
+        object.Name = name
+        object.Parent = container
+    end
+
+    object.AnimationId = "rbxassetid://" .. tostring(animationId)
+end
+
+local function GetCharacter()
+    local character = LocalPlayer.Character
+
+    if not character then
+        return nil
+    end
+
+    return character
+end
+
+local function GetAnimate()
+    local character = GetCharacter()
+
+    if not character then
+        return nil
+    end
+
+    local animate = character:FindFirstChild("Animate")
+
+    if animate then
+        return animate
+    end
+
+    return nil
+end
+
+local function ApplyAnimationPack(packName)
+    local pack = AnimationPacks[packName]
+
+    if not pack then
+        return false
+    end
+
+    local character = GetCharacter()
+
+    if not character then
+        return false
+    end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local animate = character:FindFirstChild("Animate")
+
+    if not humanoid or not animate then
+        return false
+    end
+
+    -- WALK
+    if pack.Walk then
+        local walk = animate:FindFirstChild("walk")
+        if not walk then
+            walk = Instance.new("Folder")
+            walk.Name = "walk"
+            walk.Parent = animate
+        end
+
+        SetAnimation(walk, "WalkAnim", pack.Walk)
+    end
+
+    -- RUN
+    if pack.Run then
+        local run = animate:FindFirstChild("run")
+        if not run then
+            run = Instance.new("Folder")
+            run.Name = "run"
+            run.Parent = animate
+        end
+
+        SetAnimation(run, "RunAnim", pack.Run)
+    end
+
+    -- JUMP
+    if pack.Jump then
+        local jump = animate:FindFirstChild("jump")
+        if not jump then
+            jump = Instance.new("Folder")
+            jump.Name = "jump"
+            jump.Parent = animate
+        end
+
+        SetAnimation(jump, "JumpAnim", pack.Jump)
+    end
+
+    -- FALL
+    if pack.Fall then
+        local fall = animate:FindFirstChild("fall")
+        if not fall then
+            fall = Instance.new("Folder")
+            fall.Name = "fall"
+            fall.Parent = animate
+        end
+
+        SetAnimation(fall, "FallAnim", pack.Fall)
+    end
+
+    -- CLIMB
+    if pack.Climb then
+        local climb = animate:FindFirstChild("climb")
+        if not climb then
+            climb = Instance.new("Folder")
+            climb.Name = "climb"
+            climb.Parent = animate
+        end
+
+        SetAnimation(climb, "ClimbAnim", pack.Climb)
+    end
+
+    -- SWIM
+    if pack.Swim then
+        local swim = animate:FindFirstChild("swim")
+        if not swim then
+            swim = Instance.new("Folder")
+            swim.Name = "swim"
+            swim.Parent = animate
+        end
+
+        SetAnimation(swim, "Swim", pack.Swim)
+    end
+
+    -- SWIM IDLE
+    if pack.SwimIdle then
+        local swimIdle = animate:FindFirstChild("swimidle")
+        if not swimIdle then
+            swimIdle = Instance.new("Folder")
+            swimIdle.Name = "swimidle"
+            swimIdle.Parent = animate
+        end
+
+        SetAnimation(swimIdle, "SwimIdle", pack.SwimIdle)
+    end
+
+    -- IDLE
+    if pack.Idle1 or pack.Idle2 then
+        local idle = animate:FindFirstChild("idle")
+
+        if not idle then
+            idle = Instance.new("Folder")
+            idle.Name = "idle"
+            idle.Parent = animate
+        end
+
+        if pack.Idle1 then
+            SetAnimation(idle, "Animation1", pack.Idle1)
+        end
+
+        if pack.Idle2 then
+            SetAnimation(idle, "Animation2", pack.Idle2)
+        end
+    end
+
+    -- RESTART ANIMATE
     pcall(function()
-        Animate.Disabled = true
+        animate.Disabled = true
         task.wait()
-        Animate.Disabled = false
+        animate.Disabled = false
     end)
 
     return true
 end
 
 --============================================================--
---                 KHÔI PHỤC PACK SAU HỒI SINH
+-- APPLY WITH RETRY
 --============================================================--
 
-local function ThuApDungNhieuLan(TenGoi)
+local function ApplyWithRetry(packName)
+    if not AnimationPacks[packName] then
+        return
+    end
+
+    ReapplyToken += 1
+
+    local token = ReapplyToken
+
+    SelectedPack = packName
+    ENV.ZYNTRIX_SELECTED_PACK = packName
+
     task.spawn(function()
 
-        local DanhSachCho = {
+        local delays = {
+            0,
             0.15,
             0.35,
             0.7,
-            1.1,
-            1.7,
-            2.5,
-            3.5
+            1.2,
+            2,
+            3
         }
 
-        for _,ThoiGian in ipairs(DanhSachCho) do
+        for _, delayTime in ipairs(delays) do
 
-            task.wait(ThoiGian)
-
-            if GoiDangChon ~= TenGoi then
+            if token ~= ReapplyToken then
                 return
             end
 
-            if not NguoiChoi.Character then
-                continue
+            if delayTime > 0 then
+                task.wait(delayTime)
+            end
+
+            if token ~= ReapplyToken then
+                return
             end
 
             pcall(function()
-                ApDungGoi(TenGoi)
+                ApplyAnimationPack(packName)
             end)
+        end
+    end)
+end
 
+--============================================================--
+-- RESPAWN AUTO REAPPLY
+--============================================================--
+
+Connect(LocalPlayer.CharacterAdded, function(character)
+
+    local packName = SelectedPack
+
+    if not packName then
+        return
+    end
+
+    task.spawn(function()
+
+        local humanoid = character:WaitForChild("Humanoid", 10)
+
+        if not humanoid then
+            return
+        end
+
+        task.wait(0.15)
+
+        ApplyWithRetry(packName)
+
+    end)
+end)
+
+--============================================================--
+-- PACK PAGE
+--============================================================--
+
+local PackCards = {}
+
+local function CreatePackCard(parent, packName)
+
+    local card = Instance.new("Frame")
+    card.Name = "Pack_" .. packName
+    card.Size = UDim2.new(1, -10, 0, 68)
+    card.BackgroundColor3 = Color3.fromRGB(13, 16, 32)
+    card.BorderSizePixel = 0
+    card.Parent = parent
+
+    AddCorner(card, 10)
+    AddStroke(card, 1)
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, -145, 0, 27)
+    nameLabel.Position = UDim2.new(0, 12, 0, 7)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = UIText(packName)
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 13
+    nameLabel.TextColor3 = WhiteColor
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    nameLabel.Parent = card
+
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.Size = UDim2.new(1, -145, 0, 20)
+    status.Position = UDim2.new(0, 12, 0, 36)
+    status.BackgroundTransparency = 1
+    status.Text = UIText("CHƯA CHỌN")
+    status.Font = Enum.Font.Gotham
+    status.TextSize = 10
+    status.TextColor3 = Color3.fromRGB(130, 145, 165)
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = card
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 112, 0, 40)
+    button.Position = UDim2.new(1, -122, 0.5, -20)
+    button.BackgroundColor3 = Color3.fromRGB(9, 60, 76)
+    button.BorderSizePixel = 0
+    button.Text = UIText("ÁP DỤNG")
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 11
+    button.TextColor3 = WhiteColor
+    button.Parent = card
+
+    AddCorner(button, 9)
+    AddStroke(button, 1)
+
+    Connect(button.MouseButton1Click, function()
+
+        ApplyWithRetry(packName)
+
+        for _, data in pairs(PackCards) do
+            if data.Status then
+                data.Status.Text = UIText("CHƯA CHỌN")
+                data.Status.TextColor3 = Color3.fromRGB(130, 145, 165)
+            end
+        end
+
+        status.Text = UIText("ĐANG SỬ DỤNG")
+        status.TextColor3 = Color3.fromRGB(0, 255, 140)
+
+    end)
+
+    PackCards[packName] = {
+        Card = card,
+        Status = status
+    }
+
+    return card
+end
+
+local function ShowPackPage()
+
+    ClearContent()
+
+    PageTitle.Text = UIText("GÓI HOẠT HÌNH")
+
+    local SearchBox = Instance.new("TextBox")
+    SearchBox.Name = "Search"
+    SearchBox.Size = UDim2.new(1, -24, 0, 36)
+    SearchBox.Position = UDim2.new(0, 12, 0, 50)
+    SearchBox.BackgroundColor3 = Color3.fromRGB(14, 17, 34)
+    SearchBox.BorderSizePixel = 0
+    SearchBox.ClearTextOnFocus = false
+    SearchBox.PlaceholderText = UIText("TÌM KIẾM GÓI HOẠT HÌNH")
+    SearchBox.Text = ""
+    SearchBox.TextColor3 = WhiteColor
+    SearchBox.PlaceholderColor3 = Color3.fromRGB(105, 120, 140)
+    SearchBox.Font = Enum.Font.Gotham
+    SearchBox.TextSize = 12
+    SearchBox.Parent = Content
+
+    AddCorner(SearchBox, 9)
+    AddStroke(SearchBox, 1)
+
+    AddPadding(SearchBox, 8)
+
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Name = "PackList"
+    Scroll.Size = UDim2.new(1, -24, 1, -98)
+    Scroll.Position = UDim2.new(0, 12, 0, 94)
+    Scroll.BackgroundTransparency = 1
+    Scroll.BorderSizePixel = 0
+    Scroll.ScrollBarThickness = 3
+    Scroll.ScrollBarImageColor3 = AccentColor
+    Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Scroll.Parent = Content
+
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0, 7)
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout.Parent = Scroll
+
+    AddPadding(Scroll, 2)
+
+    PackCards = {}
+
+    for packName in pairs(AnimationPacks) do
+        CreatePackCard(Scroll, packName)
+    end
+
+    if SelectedPack and PackCards[SelectedPack] then
+        PackCards[SelectedPack].Status.Text = UIText("ĐANG SỬ DỤNG")
+        PackCards[SelectedPack].Status.TextColor3 =
+            Color3.fromRGB(0, 255, 140)
+    end
+
+    Connect(SearchBox:GetPropertyChangedSignal("Text"), function()
+
+        local query = string.lower(SearchBox.Text)
+
+        for packName, data in pairs(PackCards) do
+
+            local visible =
+                query == ""
+                or string.find(
+                    string.lower(packName),
+                    query,
+                    1,
+                    true
+                ) ~= nil
+
+            data.Card.Visible = visible
+        end
+    end)
+end
+
+--============================================================--
+-- FEATURE PAGE
+--============================================================--
+
+local function ShowFeaturePage(pageName)
+
+    ClearContent()
+
+    PageTitle.Text = UIText(pageName)
+
+    local features = FeaturePages[pageName]
+
+    if not features or #features == 0 then
+        ShowComingSoon()
+        PageTitle.Text = UIText(pageName)
+        return
+    end
+
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Size = UDim2.new(1, -24, 1, -55)
+    Scroll.Position = UDim2.new(0, 12, 0, 50)
+    Scroll.BackgroundTransparency = 1
+    Scroll.BorderSizePixel = 0
+    Scroll.ScrollBarThickness = 3
+    Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Scroll.Parent = Content
+
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0, 8)
+    Layout.Parent = Scroll
+
+    for _, feature in ipairs(features) do
+
+        local card = Instance.new("Frame")
+        card.Size = UDim2.new(1, -5, 0, 72)
+        card.BackgroundColor3 = Color3.fromRGB(13, 16, 32)
+        card.BorderSizePixel = 0
+        card.Parent = Scroll
+
+        AddCorner(card, 10)
+        AddStroke(card, 1)
+
+        local featureName = Instance.new("TextLabel")
+        featureName.Size = UDim2.new(1, -135, 0, 25)
+        featureName.Position = UDim2.new(0, 12, 0, 7)
+        featureName.BackgroundTransparency = 1
+        featureName.Text = UIText(feature.Name)
+        featureName.Font = Enum.Font.GothamBold
+        featureName.TextSize = 12
+        featureName.TextColor3 = WhiteColor
+        featureName.TextXAlignment = Enum.TextXAlignment.Left
+        featureName.Parent = card
+
+        local description = Instance.new("TextLabel")
+        description.Size = UDim2.new(1, -135, 0, 30)
+        description.Position = UDim2.new(0, 12, 0, 33)
+        description.BackgroundTransparency = 1
+        description.Text = UIText(feature.Description)
+        description.Font = Enum.Font.Gotham
+        description.TextSize = 9
+        description.TextColor3 = Color3.fromRGB(135, 150, 170)
+        description.TextXAlignment = Enum.TextXAlignment.Left
+        description.TextWrapped = true
+        description.Parent = card
+
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 105, 0, 38)
+        button.Position = UDim2.new(1, -115, 0.5, -19)
+        button.BackgroundColor3 = Color3.fromRGB(9, 60, 76)
+        button.BorderSizePixel = 0
+        button.Text = UIText("BẬT")
+        button.Font = Enum.Font.GothamBold
+        button.TextSize = 10
+        button.TextColor3 = WhiteColor
+        button.Parent = card
+
+        AddCorner(button, 8)
+        AddStroke(button, 1)
+
+        local enabled = false
+
+        Connect(button.MouseButton1Click, function()
+
+            enabled = not enabled
+
+            if feature.Action then
+                pcall(function()
+                    feature.Action()
+                end)
+            end
+
+            if enabled then
+                button.Text = UIText("ĐANG BẬT")
+                button.BackgroundColor3 =
+                    Color3.fromRGB(0, 110, 90)
+            else
+                button.Text = UIText("BẬT")
+                button.BackgroundColor3 =
+                    Color3.fromRGB(9, 60, 76)
+            end
+        end)
+    end
+end
+
+--============================================================--
+-- SETTINGS PAGE
+--============================================================--
+
+local function ShowSettingsPage()
+
+    ClearContent()
+
+    PageTitle.Text = UIText("CÀI ĐẶT")
+
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, -24, 0, 78)
+    card.Position = UDim2.new(0, 12, 0, 55)
+    card.BackgroundColor3 = Color3.fromRGB(13, 16, 32)
+    card.BorderSizePixel = 0
+    card.Parent = Content
+
+    AddCorner(card, 10)
+    AddStroke(card, 1)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -130, 0, 26)
+    label.Position = UDim2.new(0, 12, 0, 9)
+    label.BackgroundTransparency = 1
+    label.Text = UIText("HIỆU ỨNG GIAO DIỆN")
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextColor3 = WhiteColor
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = card
+
+    local desc = Instance.new("TextLabel")
+    desc.Size = UDim2.new(1, -130, 0, 24)
+    desc.Position = UDim2.new(0, 12, 0, 36)
+    desc.BackgroundTransparency = 1
+    desc.Text = UIText("Màu chạy + sparkle + falling text")
+    desc.Font = Enum.Font.Gotham
+    desc.TextSize = 9
+    desc.TextColor3 = Color3.fromRGB(135, 150, 170)
+    desc.TextXAlignment = Enum.TextXAlignment.Left
+    desc.Parent = card
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 100, 0, 40)
+    toggle.Position = UDim2.new(1, -112, 0.5, -20)
+    toggle.BackgroundColor3 = Color3.fromRGB(0, 110, 90)
+    toggle.BorderSizePixel = 0
+    toggle.Text = UIText("ĐANG BẬT")
+    toggle.Font = Enum.Font.GothamBold
+    toggle.TextSize = 10
+    toggle.TextColor3 = WhiteColor
+    toggle.Parent = card
+
+    AddCorner(toggle, 8)
+    AddStroke(toggle, 1)
+
+    Connect(toggle.MouseButton1Click, function()
+
+        EffectsEnabled = not EffectsEnabled
+
+        if EffectsEnabled then
+            toggle.Text = UIText("ĐANG BẬT")
+            toggle.BackgroundColor3 =
+                Color3.fromRGB(0, 110, 90)
+        else
+            toggle.Text = UIText("ĐÃ TẮT")
+            toggle.BackgroundColor3 =
+                Color3.fromRGB(70, 35, 45)
         end
 
     end)
 end
 
 --============================================================--
---                    THEO DÕI HỒI SINH
+-- OPEN PAGE
 --============================================================--
 
-NguoiChoi.CharacterAdded:Connect(function(NhanVatMoi)
+local function OpenPage(pageName)
 
-    local PackCanKhoiPhuc = GoiDangChon
+    CurrentPage = pageName
 
-    if not PackCanKhoiPhuc then
-        return
+    for name, button in pairs(PageButtons) do
+        if name == pageName then
+            button.BackgroundColor3 =
+                Color3.fromRGB(0, 80, 105)
+        else
+            button.BackgroundColor3 =
+                Color3.fromRGB(12, 15, 29)
+        end
     end
 
-    task.spawn(function()
+    if pageName == "GÓI HOẠT HÌNH" then
+        ShowPackPage()
+    elseif pageName == "CÀI ĐẶT" then
+        ShowSettingsPage()
+    else
+        ShowFeaturePage(pageName)
+    end
+end
 
-        local Humanoid = NhanVatMoi:WaitForChild("Humanoid",10)
-        local Animate = NhanVatMoi:WaitForChild("Animate",10)
+--============================================================--
+-- CREATE SIDEBAR BUTTONS
+--============================================================--
 
-        if not Humanoid or not Animate then
-            return
+local PageOrder = {
+    "TRANG CHỦ",
+    "ĐIỀU KHIỂN",
+    "GÓI HOẠT HÌNH",
+    "TRÒ CHƠI",
+    "CÀI ĐẶT"
+}
+
+for index, pageName in ipairs(PageOrder) do
+
+    local button = Instance.new("TextButton")
+    button.Name = "PageButton_" .. index
+    button.Size = UDim2.new(1, -10, 0, 42)
+    button.BackgroundColor3 = Color3.fromRGB(12, 15, 29)
+    button.BorderSizePixel = 0
+    button.Text = UIText(pageName)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 10
+    button.TextColor3 = WhiteColor
+    button.LayoutOrder = index
+    button.Parent = Sidebar
+
+    AddCorner(button, 9)
+    AddStroke(button, 1)
+
+    PageButtons[pageName] = button
+
+    Connect(button.MouseButton1Click, function()
+        OpenPage(pageName)
+    end)
+end
+
+--============================================================--
+-- MINIMIZE / OPEN
+--============================================================--
+
+local MainOpen = true
+
+local function SetMainVisible(state)
+
+    MainOpen = state
+
+    if state then
+
+        MenuButton.Visible = false
+
+        Main.Visible = true
+
+        Main.Size = UDim2.new(0, 560, 0, 350)
+
+        TweenService:Create(
+            Main,
+            TweenInfo.new(
+                0.28,
+                Enum.EasingStyle.Quint,
+                Enum.EasingDirection.Out
+            ),
+            {
+                Size = UDim2.new(0, 620, 0, 390)
+            }
+        ):Play()
+
+    else
+
+        TweenService:Create(
+            Main,
+            TweenInfo.new(
+                0.22,
+                Enum.EasingStyle.Quint,
+                Enum.EasingDirection.In
+            ),
+            {
+                Size = UDim2.new(0, 560, 0, 350)
+            }
+        ):Play()
+
+        task.delay(0.22, function()
+
+            if not MainOpen then
+                Main.Visible = false
+                MenuButton.Visible = true
+            end
+
+        end)
+    end
+end
+
+Connect(Minimize.MouseButton1Click, function()
+    SetMainVisible(false)
+end)
+
+Connect(MenuButton.MouseButton1Click, function()
+    SetMainVisible(true)
+end)
+
+Connect(Close.MouseButton1Click, function()
+
+    pcall(function()
+        ENV.ZYNTRIX_ANIMATION_CLEANUP = nil
+    end)
+
+    for _, connection in ipairs(Connections) do
+        pcall(function()
+            connection:Disconnect()
+        end)
+    end
+
+    table.clear(Connections)
+
+    if Gui then
+        Gui:Destroy()
+    end
+
+end)
+
+--============================================================--
+-- EFFECT: FALLING TEXT
+--============================================================--
+
+local FallingContainer = Instance.new("Frame")
+FallingContainer.Size = UDim2.fromScale(1, 1)
+FallingContainer.BackgroundTransparency = 1
+FallingContainer.ClipsDescendants = true
+FallingContainer.ZIndex = 1
+FallingContainer.Parent = Background
+
+task.spawn(function()
+
+    local symbols = {
+        "✦",
+        "✧",
+        "•",
+        "⁙",
+        "★"
+    }
+
+    while Gui and Gui.Parent do
+
+        if EffectsEnabled then
+
+            local label = Instance.new("TextLabel")
+            label.BackgroundTransparency = 1
+            label.Text = symbols[math.random(1, #symbols)]
+            label.TextColor3 = AccentColor
+            label.TextTransparency = 0.35
+            label.Font = Enum.Font.GothamBold
+            label.TextSize = math.random(8, 15)
+            label.Position = UDim2.new(
+                math.random(),
+                0,
+                -0.05,
+                0
+            )
+            label.Size = UDim2.new(0, 20, 0, 20)
+            label.ZIndex = 1
+            label.Parent = FallingContainer
+
+            local targetY = math.random(90, 110) / 100
+
+            TweenService:Create(
+                label,
+                TweenInfo.new(
+                    math.random(35, 65) / 10,
+                    Enum.EasingStyle.Linear
+                ),
+                {
+                    Position = UDim2.new(
+                        label.Position.X.Scale,
+                        0,
+                        targetY,
+                        0
+                    ),
+                    TextTransparency = 1
+                }
+            ):Play()
+
+            task.delay(7, function()
+                if label then
+                    label:Destroy()
+                end
+            end)
+
         end
 
         task.wait(0.25)
+    end
+end)
 
-        if GoiDangChon ~= PackCanKhoiPhuc then
-            return
-        end
+--============================================================--
+-- EFFECT: COLOR CYCLE
+--============================================================--
 
-        ApDungGoi(PackCanKhoiPhuc)
-        ThuApDungNhieuLan(PackCanKhoiPhuc)
+task.spawn(function()
 
-        -- Theo dõi trường hợp Animate bị Roblox thay lại
-        task.spawn(function()
+    local hue = 0
 
-            local LanCuoi = Animate
+    while Gui and Gui.Parent do
 
-            while NguoiChoi.Character == NhanVatMoi
-            and GoiDangChon == PackCanKhoiPhuc
-            and Gui.Parent do
+        if EffectsEnabled then
 
-                task.wait(1)
+            hue += 0.004
 
-                local AnimateHienTai = NhanVatMoi:FindFirstChild("Animate")
+            if hue > 1 then
+                hue = 0
+            end
 
-                if AnimateHienTai and AnimateHienTai ~= LanCuoi then
+            local color = Color3.fromHSV(hue, 0.85, 1)
 
-                    LanCuoi = AnimateHienTai
+            for _, target in ipairs(ColorTargets) do
 
-                    task.wait(0.15)
+                if target.Object
+                and target.Object.Parent then
 
                     pcall(function()
-                        ApDungGoi(PackCanKhoiPhuc)
+                        target.Object[target.Property] = color
                     end)
 
                 end
             end
 
-        end)
-
-    end)
-
-end)
-
---============================================================--
---                     TẠO TRANG PACK
---============================================================--
-
-local function TaoTrangPack()
-
-    XoaNoiDung()
-
-    local ThanhTim = Instance.new("TextBox")
-
-    ThanhTim.Size = UDim2.new(1,-10,0,38)
-    ThanhTim.Position = UDim2.fromOffset(5,0)
-    ThanhTim.BackgroundColor3 = MÀU_CARD
-    ThanhTim.BackgroundTransparency = 0.08
-    ThanhTim.BorderSizePixel = 0
-    ThanhTim.PlaceholderText = "Tìm gói hoạt hình... "
-    ThanhTim.PlaceholderColor3 = Color3.fromRGB(140,140,155)
-    ThanhTim.Text = ""
-    ThanhTim.TextColor3 = MÀU_TRANG
-    ThanhTim.Font = Enum.Font.GothamMedium
-    ThanhTim.TextSize = 10
-    ThanhTim.ClearTextOnFocus = false
-    ThanhTim.Parent = NoiDung
-
-    TaoBoGoc(ThanhTim,10)
-    TaoVien(ThanhTim,1)
-
-    local Cuon = Instance.new("ScrollingFrame")
-
-    Cuon.Size = UDim2.new(1,-10,1,-48)
-    Cuon.Position = UDim2.fromOffset(5,48)
-    Cuon.BackgroundTransparency = 1
-    Cuon.BorderSizePixel = 0
-    Cuon.ScrollBarThickness = 3
-    Cuon.ScrollBarImageTransparency = 0.15
-    Cuon.CanvasSize = UDim2.new()
-    Cuon.Parent = NoiDung
-
-    local DanhSach = Instance.new("UIListLayout")
-    DanhSach.Padding = UDim.new(0,7)
-    DanhSach.SortOrder = Enum.SortOrder.LayoutOrder
-    DanhSach.Parent = Cuon
-
-    local CacCard = {}
-
-    local SoThuTu = 0
-
-    for TenGoi,DuLieu in pairs(GoiHoatHinh) do
-
-        SoThuTu += 1
-
-        local Card = Instance.new("Frame")
-
-        Card.Size = UDim2.new(1,-6,0,62)
-        Card.BackgroundColor3 = MÀU_CARD
-        Card.BackgroundTransparency = 0.05
-        Card.BorderSizePixel = 0
-        Card.LayoutOrder = SoThuTu
-        Card.Parent = Cuon
-
-        TaoBoGoc(Card,11)
-        TaoVien(Card,1)
-
-        CacCard[TenGoi] = Card
-
-        local Ten = Instance.new("TextLabel")
-
-        Ten.Size = UDim2.new(1,-145,0,25)
-        Ten.Position = UDim2.fromOffset(10,5)
-        Ten.BackgroundTransparency = 1
-        Ten.Text = TenGoi .. " "
-        Ten.TextColor3 = MÀU_TRANG
-        Ten.Font = Enum.Font.GothamBold
-        Ten.TextSize = 10
-        Ten.TextXAlignment = Enum.TextXAlignment.Left
-        Ten.TextTruncate = Enum.TextTruncate.AtEnd
-        Ten.Parent = Card
-
-        local TrangThai = Instance.new("TextLabel")
-
-        TrangThai.Size = UDim2.new(1,-145,0,20)
-        TrangThai.Position = UDim2.fromOffset(10,32)
-        TrangThai.BackgroundTransparency = 1
-        TrangThai.Text = "SẴN SÀNG "
-        TrangThai.TextColor3 = MÀU_MO
-        TrangThai.Font = Enum.Font.GothamMedium
-        TrangThai.TextSize = 8
-        TrangThai.TextXAlignment = Enum.TextXAlignment.Left
-        TrangThai.Parent = Card
-
-        local NutDung = TaoNut(Card,"DÙNG",MÀU_TÍM)
-
-        NutDung.Size = UDim2.fromOffset(60,32)
-        NutDung.Position = UDim2.new(1,-138,0.5,-16)
-
-        local NutChep = TaoNut(Card,"CHÉP",MÀU_XANH)
-
-        NutChep.Size = UDim2.fromOffset(60,32)
-        NutChep.Position = UDim2.new(1,-72,0.5,-16)
-
-        NutDung.MouseButton1Click:Connect(function()
-
-            local ThanhCong = ApDungGoi(TenGoi)
-
-            if ThanhCong then
-
-                TrangThai.Text = "ĐANG HOẠT ĐỘNG "
-                TrangThai.TextColor3 = MÀU_XANH_LA
-
-                ThuApDungNhieuLan(TenGoi)
-
-                for TenKhac,CardKhac in pairs(CacCard) do
-
-                    if TenKhac ~= TenGoi then
-
-                        local TrangThaiKhac = CardKhac:FindFirstChildOfClass("TextLabel")
-
-                        if TrangThaiKhac then
-                            -- Không đổi trạng thái nếu card chưa dùng.
-                        end
-
-                    end
-
-                end
-
-            else
-
-                TrangThai.Text = "CHƯA SẴN SÀNG "
-                TrangThai.TextColor3 = MÀU_HONG
-
-            end
-
-        end)
-
-        NutChep.MouseButton1Click:Connect(function()
-
-            local ID = DuLieu.Walk
-                or DuLieu.Run
-                or DuLieu.Idle1
-                or DuLieu.Bundle
-
-            if ID then
-
-                pcall(function()
-                    if setclipboard then
-                        setclipboard(tostring(ID))
-                    end
-                end)
-
-                TrangThai.Text = "ĐÃ CHÉP ID "
-                TrangThai.TextColor3 = MÀU_XANH
-
-                task.delay(1.5,function()
-
-                    if TrangThai.Parent then
-
-                        if GoiDangChon == TenGoi then
-                            TrangThai.Text = "ĐANG HOẠT ĐỘNG "
-                            TrangThai.TextColor3 = MÀU_XANH_LA
-                        else
-                            TrangThai.Text = "SẴN SÀNG "
-                            TrangThai.TextColor3 = MÀU_MO
-                        end
-
-                    end
-
-                end)
-
-            end
-
-        end)
-
-    end
-
-    local function CapNhatCuon()
-        Cuon.CanvasSize = UDim2.fromOffset(
-            0,
-            DanhSach.AbsoluteContentSize.Y + 8
-        )
-    end
-
-    CapNhatCuon()
-
-    DanhSach:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(CapNhatCuon)
-
-    ThanhTim:GetPropertyChangedSignal("Text"):Connect(function()
-
-        local TuKhoa = string.lower(ThanhTim.Text)
-
-        for TenGoi,Card in pairs(CacCard) do
-
-            if TuKhoa == ""
-            or string.find(string.lower(TenGoi),TuKhoa,1,true) then
-
-                Card.Visible = true
-
-            else
-
-                Card.Visible = false
-
-            end
-
         end
 
-        task.defer(CapNhatCuon)
-
-    end)
-
-end
-
---============================================================--
---                    TẠO TRANG CHỨC NĂNG
---============================================================--
-
-local function TaoTrangChucNang(TenTrang)
-
-    XoaNoiDung()
-
-    local DanhSach = ADDON_CHUC_NANG[TenTrang]
-
-    if not DanhSach or #DanhSach == 0 then
-        TaoComingSoon()
-        return
+        task.wait(0.04)
     end
+end)
 
-    local Cuon = Instance.new("ScrollingFrame")
+--============================================================--
+-- START
+--============================================================--
 
-    Cuon.Size = UDim2.new(1,-10,1,-10)
-    Cuon.Position = UDim2.fromOffset(5,5)
-    Cuon.BackgroundTransparency = 1
-    Cuon.BorderSizePixel = 0
-    Cuon.ScrollBarThickness = 3
-    Cuon.ScrollBarImageTransparency = 0.15
-    Cuon.CanvasSize = UDim2.new()
-    Cuon.Parent = NoiDung
+OpenPage("TRANG CHỦ")
 
-    local Layout = Instance.new("UIListLayout")
+--============================================================--
+-- SAVE CLEANUP FUNCTION
+--============================================================--
 
-    Layout.Padding = UDim.new(0,8)
-    Layout.SortOrder = Enum.SortOrder.LayoutOrder
-    Layout.Parent = Cuon
+ENV.ZYNTRIX_ANIMATION_CLEANUP = function()
 
-    for _,DuLieu in ipairs(DanhSach) do
-
-        local Card = Instance.new("Frame")
-
-        Card.Size = UDim2.new(1,-5,0,70)
-        Card.BackgroundColor3 = MÀU_CARD
-        Card.BackgroundTransparency = 0.05
-        Card.BorderSizePixel = 0
-        Card.Parent = Cuon
-
-        TaoBoGoc(Card,11)
-        TaoVien(Card,1)
-
-        local Ten = Instance.new("TextLabel")
-
-        Ten.Size = UDim2.new(1,-120,0,28)
-        Ten.Position = UDim2.fromOffset(10,7)
-        Ten.BackgroundTransparency = 1
-        Ten.Text = DuLieu.Ten .. " "
-        Ten.TextColor3 = MÀU_TRANG
-        Ten.Font = Enum.Font.GothamBold
-        Ten.TextSize = 10
-        Ten.TextXAlignment = Enum.TextXAlignment.Left
-        Ten.TextTruncate = Enum.TextTruncate.AtEnd
-        Ten.Parent = Card
-
-        local MoTa = Instance.new("TextLabel")
-
-        MoTa.Size = UDim2.new(1,-120,0,25)
-        MoTa.Position = UDim2.fromOffset(10,35)
-        MoTa.BackgroundTransparency = 1
-        MoTa.Text = DuLieu.MoTa .. " "
-        MoTa.TextColor3 = MÀU_MO
-        MoTa.Font = Enum.Font.GothamMedium
-        MoTa.TextSize = 8
-        MoTa.TextXAlignment = Enum.TextXAlignment.Left
-        MoTa.TextTruncate = Enum.TextTruncate.AtEnd
-        MoTa.Parent = Card
-
-        local Nut = TaoNut(Card,"BẬT",MÀU_TÍM)
-
-        Nut.Size = UDim2.fromOffset(82,34)
-        Nut.Position = UDim2.new(1,-92,0.5,-17)
-
-        Nut.MouseButton1Click:Connect(function()
-
-            if DuLieu.Ham then
-                pcall(DuLieu.Ham)
-            end
-
-            Nut.Text = "ĐÃ BẬT "
-            Nut.BackgroundColor3 = MÀU_XANH_LA
-
-            task.delay(1.2,function()
-
-                if Nut.Parent then
-                    Nut.Text = "BẬT "
-                    Nut.BackgroundColor3 = MÀU_TÍM
-                end
-
-            end)
-
+    for _, connection in ipairs(Connections) do
+        pcall(function()
+            connection:Disconnect()
         end)
-
     end
 
-    local function CapNhat()
-        Cuon.CanvasSize = UDim2.fromOffset(
-            0,
-            Layout.AbsoluteContentSize.Y + 8
-        )
-    end
+    table.clear(Connections)
 
-    CapNhat()
-
-    Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(CapNhat)
-
-end
-
---============================================================--
---                       CHUYỂN TRANG
---============================================================--
-
-local function CapNhatNutTrang(TenTrang)
-
-    for _,Nut in ipairs(CacNutTrang) do
-
-        local TenNut = string.gsub(Nut.Text," ","")
-
-        if string.find(TenNut,TenTrang,1,true) then
-
-            Nut.BackgroundColor3 = MÀU_TÍM
-            Nut.TextColor3 = MÀU_TRANG
-
-        else
-
-            Nut.BackgroundColor3 = Color3.fromRGB(20,15,32)
-            Nut.TextColor3 = Color3.fromRGB(205,205,220)
-
-        end
-
+    if Gui then
+        pcall(function()
+            Gui:Destroy()
+        end)
     end
 
 end
 
-local function MoTrang(TenTrang)
-
-    TrangHienTai = TenTrang
-
-    if TenTrang == "GÓI HOẠT HÌNH" then
-
-        TaoTrangPack()
-
-    else
-
-        TaoTrangChucNang(TenTrang)
-
-    end
-
-    CapNhatNutTrang(TenTrang)
-
-end
-
-NutTrangChu.MouseButton1Click:Connect(function()
-    MoTrang("TRANG CHỦ")
-end)
-
-NutDieuKhien.MouseButton1Click:Connect(function()
-    MoTrang("ĐIỀU KHIỂN")
-end)
-
-NutGoi.MouseButton1Click:Connect(function()
-    MoTrang("GÓI HOẠT HÌNH")
-end)
-
-NutTroChoi.MouseButton1Click:Connect(function()
-    MoTrang("TRÒ CHƠI")
-end)
-
-NutCaiDat.MouseButton1Click:Connect(function()
-    MoTrang("CÀI ĐẶT")
-end)
-
 --============================================================--
---                       CHỮ RƠI
+-- AUTO RE-OPEN SELECTED PACK PAGE SUPPORT
 --============================================================--
-
-local ChuRoi = {
-    "ZYNTRIX",
-    "VIP PRIME",
-    "ANIMATION",
-    "32 PACK",
-    "",
-    "★",
-    "•",
-    "✦",
-    "✧",
-    "◌"
-}
-
-local function TaoChuRoi()
-
-    if not Khung.Visible then
-        return
-    end
-
-    local Chu = Instance.new("TextLabel")
-
-    Chu.BackgroundTransparency = 1
-    Chu.Text = ChuRoi[math.random(1,#ChuRoi)]
-    Chu.TextColor3 = MÀU_TRANG
-    Chu.Font = Enum.Font.GothamBold
-    Chu.TextSize = math.random(8,14)
-    Chu.TextTransparency = 0.1
-    Chu.ZIndex = 3
-
-    local X = math.random(5,95)/100
-
-    Chu.Size = UDim2.fromOffset(65,25)
-    Chu.Position = UDim2.new(X,0,-0.1,0)
-    Chu.Parent = LopHieuUng
-
-    local ThoiGian = math.random(25,45)/10
-
-    local Tween = TweenService:Create(
-        Chu,
-        TweenInfo.new(
-            ThoiGian,
-            Enum.EasingStyle.Linear
-        ),
-        {
-            Position = UDim2.new(X,0,1.1,0),
-            TextTransparency = 1,
-            Rotation = math.random(-25,25)
-        }
-    )
-
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-
-        if Chu.Parent then
-            Chu:Destroy()
-        end
-
-    end)
-
-end
 
 task.spawn(function()
 
-    while Gui.Parent do
+    while Gui and Gui.Parent do
 
-        TaoChuRoi()
+        if SelectedPack
+        and ENV.ZYNTRIX_SELECTED_PACK ~= SelectedPack then
 
-        task.wait(math.random(15,30)/10)
+            SelectedPack = ENV.ZYNTRIX_SELECTED_PACK
 
-    end
-
-end)
-
---============================================================--
---                    SAO / BONG BÓNG
---============================================================--
-
-local function TaoHatLapLanh()
-
-    local Hat = Instance.new("TextLabel")
-
-    Hat.BackgroundTransparency = 1
-
-    local Loai = math.random(1,4)
-
-    if Loai == 1 then
-        Hat.Text = "★"
-    elseif Loai == 2 then
-        Hat.Text = "•"
-    elseif Loai == 3 then
-        Hat.Text = "✦"
-    else
-        Hat.Text = "✧"
-    end
-
-    Hat.TextColor3 = MÀU_TRANG
-    Hat.Font = Enum.Font.GothamBold
-    Hat.TextSize = math.random(8,17)
-    Hat.TextTransparency = 1
-    Hat.ZIndex = 4
-
-    local X = math.random(2,98)/100
-    local Y = math.random(5,95)/100
-
-    Hat.Size = UDim2.fromOffset(25,25)
-    Hat.Position = UDim2.new(X,0,Y,0)
-    Hat.Parent = LopHieuUng
-
-    local Vao = TweenService:Create(
-        Hat,
-        TweenInfo.new(0.4,Enum.EasingStyle.Quad),
-        {
-            TextTransparency = 0
-        }
-    )
-
-    local Ra = TweenService:Create(
-        Hat,
-        TweenInfo.new(0.65,Enum.EasingStyle.Quad),
-        {
-            TextTransparency = 1,
-            Rotation = 180,
-            Size = UDim2.fromOffset(4,4)
-        }
-    )
-
-    Vao:Play()
-
-    Vao.Completed:Connect(function()
-
-        task.wait(math.random(2,7)/10)
-
-        if Hat.Parent then
-            Ra:Play()
         end
 
-    end)
-
-    Ra.Completed:Connect(function()
-
-        if Hat.Parent then
-            Hat:Destroy()
-        end
-
-    end)
-
-end
-
-task.spawn(function()
-
-    while Gui.Parent do
-
-        TaoHatLapLanh()
-
-        task.wait(math.random(4,10)/10)
-
+        task.wait(1)
     end
 
 end)
 
---============================================================--
---                    MÀU CHẠY TOÀN UI
---============================================================--
-
-local MauChay = {
-    MÀU_TÍM,
-    MÀU_XANH,
-    MÀU_HONG,
-    MÀU_XANH_LA
-}
-
-task.spawn(function()
-
-    local ChiSo = 1
-
-    while Gui.Parent do
-
-        ChiSo += 1
-
-        if ChiSo > #MauChay then
-            ChiSo = 1
-        end
-
-        local Mau = MauChay[ChiSo]
-
-        TieuDe.TextColor3 = Mau
-        PhuDe.TextColor3 = Mau
-
-        task.wait(0.8)
-
-    end
-
-end)
-
---============================================================--
---                     NÚT MENU ẢNH
---============================================================--
-
-local NutMenu = Instance.new("ImageButton")
-
-NutMenu.Name = "NutMenu"
-NutMenu.Size = UDim2.fromOffset(58,58)
-NutMenu.Position = UDim2.new(0,18,0.5,-29)
-NutMenu.BackgroundColor3 = Color3.fromRGB(10,8,18)
-NutMenu.BackgroundTransparency = 0.12
-NutMenu.BorderSizePixel = 0
-NutMenu.Image = ID_ANH_MENU
-NutMenu.ScaleType = Enum.ScaleType.Crop
-NutMenu.ZIndex = 100
-NutMenu.Parent = Gui
-
-TaoBoGoc(NutMenu,16)
-TaoVien(NutMenu,2)
-
---============================================================--
---                    MỞ / ĐÓNG GUI
---============================================================--
-
-local DangMo = true
-
-local function MoGUI()
-
-    DangMo = true
-
-    Khung.Visible = true
-    Khung.Size = UDim2.fromOffset(0,0)
-    Khung.BackgroundTransparency = 1
-
-    local Tween = TweenService:Create(
-        Khung,
-        TweenInfo.new(
-            0.48,
-            Enum.EasingStyle.Back,
-            Enum.EasingDirection.Out
-        ),
-        {
-            Size = UDim2.fromOffset(RONG_GUI,CAO_GUI),
-            BackgroundTransparency = DO_TRONG_SUOT
-        }
-    )
-
-    Tween:Play()
-
-end
-
-local function DongGUI()
-
-    DangMo = false
-
-    local Tween = TweenService:Create(
-        Khung,
-        TweenInfo.new(
-            0.35,
-            Enum.EasingStyle.Back,
-            Enum.EasingDirection.In
-        ),
-        {
-            Size = UDim2.fromOffset(0,0),
-            BackgroundTransparency = 1
-        }
-    )
-
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-
-        if not DangMo then
-            Khung.Visible = false
-        end
-
-    end)
-
-end
-
-NutMenu.MouseButton1Click:Connect(function()
-
-    if DangMo then
-        DongGUI()
-    else
-        MoGUI()
-    end
-
-end)
-
-NutDong.MouseButton1Click:Connect(function()
-    DongGUI()
-end)
-
---============================================================--
---                       KÉO MOBILE
---============================================================--
-
-local DangKeo = false
-local ViTriBatDau = nil
-local ViTriKhung = nil
-
-local function BatDauKeo(Input)
-
-    DangKeo = true
-
-    ViTriBatDau = Input.Position
-    ViTriKhung = Khung.Position
-
-end
-
-local function KetThucKeo()
-
-    DangKeo = false
-
-end
-
-local function CapNhatKeo(Input)
-
-    if not DangKeo then
-        return
-    end
-
-    local Delta = Input.Position - ViTriBatDau
-
-    Khung.Position = UDim2.new(
-        ViTriKhung.X.Scale,
-        ViTriKhung.X.Offset + Delta.X,
-        ViTriKhung.Y.Scale,
-        ViTriKhung.Y.Offset + Delta.Y
-    )
-
-end
-
-TieuDe.InputBegan:Connect(function(Input)
-
-    if Input.UserInputType == Enum.UserInputType.Touch
-    or Input.UserInputType == Enum.UserInputType.MouseButton1 then
-
-        BatDauKeo(Input)
-
-    end
-
-end)
-
-TieuDe.InputChanged:Connect(function(Input)
-
-    if Input.UserInputType == Enum.UserInputType.Touch
-    or Input.UserInputType == Enum.UserInputType.MouseMovement then
-
-        CapNhatKeo(Input)
-
-    end
-
-end)
-
-UserInputService.InputChanged:Connect(function(Input)
-
-    if Input.UserInputType == Enum.UserInputType.Touch
-    or Input.UserInputType == Enum.UserInputType.MouseMovement then
-
-        CapNhatKeo(Input)
-
-    end
-
-end)
-
-UserInputService.InputEnded:Connect(function(Input)
-
-    if Input.UserInputType == Enum.UserInputType.Touch
-    or Input.UserInputType == Enum.UserInputType.MouseButton1 then
-
-        KetThucKeo()
-
-    end
-
-end)
-
---============================================================--
---                  ANIMATION MỞ BAN ĐẦU
---============================================================--
-
-Khung.Size = UDim2.fromOffset(0,0)
-Khung.BackgroundTransparency = 1
-
-TweenService:Create(
-    Khung,
-    TweenInfo.new(
-        0.6,
-        Enum.EasingStyle.Back,
-        Enum.EasingDirection.Out
-    ),
-    {
-        Size = UDim2.fromOffset(RONG_GUI,CAO_GUI),
-        BackgroundTransparency = DO_TRONG_SUOT
-    }
-):Play()
-
---============================================================--
---                      TRANG BAN ĐẦU
---============================================================--
-
-MoTrang("TRANG CHỦ")
-
---============================================================--
---                          HẾT
---============================================================--
+print("ZYNTRIX VIP PRIME • ANIMATION HUB LOADED")
