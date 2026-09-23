@@ -1,1637 +1,3177 @@
---============================================================--
--- ZYNTRIX VIP PRIME
--- ANIMATION HUB • FULL UI EDITION
---============================================================--
-
---============================================================--
--- SERVICES
---============================================================--
+--==============================================================--
+--        ZYNTRIX VIP PRIME V9 • SECRET ANIMATION HUB
+--        WINDUI INSPIRED • V8 UPGRADED
+--        32 ANIMATION PACKS • MOBILE • DRAGGABLE
+--        SEARCH • RESPAWN FIX • GLASS • NEON • SECRET MODE
+--        NO BLACK SCREEN • NO FALLING TEXT
+--==============================================================--
 
 local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
-local LocalPlayer = Players.LocalPlayer
+local Player = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
 
---============================================================--
--- ENVIRONMENT / CLEANUP
---============================================================--
+--==============================================================--
+-- CONFIG
+--==============================================================--
 
-local ENV = _G
+local MAIN_NAME = "ZYNTRIX_PRIME_V9"
+
+local UI_IMAGE =
+    "rbxthumb://type=Asset&id=139560886954495&w=420&h=420"
+
+local MENU_IMAGE =
+    "rbxthumb://type=Asset&id=88589651965141&w=420&h=420"
+
+local BACKGROUND_IMAGE =
+    "rbxthumb://type=Asset&id=128941307094234&w=1024&h=1024"
+
+-- true = hiệu ứng
+local EffectsEnabled = true
+
+--==============================================================--
+-- COLORS
+--==============================================================--
+
+local Cyan =
+    Color3.fromRGB(0,220,255)
+
+local Blue =
+    Color3.fromRGB(75,110,255)
+
+local Purple =
+    Color3.fromRGB(170,80,255)
+
+local Violet =
+    Color3.fromRGB(115,85,255)
+
+local White =
+    Color3.fromRGB(245,250,255)
+
+local SoftWhite =
+    Color3.fromRGB(190,205,225)
+
+local Muted =
+    Color3.fromRGB(105,125,150)
+
+local Dark =
+    Color3.fromRGB(5,7,16)
+
+local Panel =
+    Color3.fromRGB(9,12,24)
+
+local Card =
+    Color3.fromRGB(13,17,33)
+
+local CardHover =
+    Color3.fromRGB(20,27,52)
+
+local Green =
+    Color3.fromRGB(80,235,160)
+
+local Red =
+    Color3.fromRGB(255,90,120)
+
+--==============================================================--
+-- ANTI DUPLICATE
+--==============================================================--
 
 pcall(function()
-    ENV = getgenv()
-end)
 
-pcall(function()
-    if ENV.ZYNTRIX_ANIMATION_CLEANUP then
-        ENV.ZYNTRIX_ANIMATION_CLEANUP()
+    if getgenv().ZYNTRIX_PRIME_V9_CLEANUP then
+        getgenv().ZYNTRIX_PRIME_V9_CLEANUP()
     end
-end)
 
-pcall(function()
-    local old = CoreGui:FindFirstChild("ZyntrixAnimationHub")
-    if old then
-        old:Destroy()
-    end
 end)
 
 local Connections = {}
+local Alive = true
 
 local function Connect(signal, callback)
+
     local c = signal:Connect(callback)
-    table.insert(Connections, c)
+
+    table.insert(
+        Connections,
+        c
+    )
+
     return c
+
 end
 
---============================================================--
--- CONFIG
---============================================================--
+local function Cleanup()
 
-local UI_IMAGE =
-    "rbxthumb://type=Asset&id=6293835670&w=420&h=420"
+    Alive = false
 
-local MENU_IMAGE =
-    "rbxthumb://type=Asset&id=145787888&w=420&h=420"
+    for _, c in ipairs(Connections) do
 
-local ICON = " "
+        pcall(function()
+            c:Disconnect()
+        end)
 
-local function UI_TEXT(text)
-    return tostring(text) .. ICON
-end
+    end
 
---============================================================--
--- COLORS
---============================================================--
+    Connections = {}
 
-local BackgroundColor = Color3.fromRGB(3, 5, 13)
-local PanelColor = Color3.fromRGB(9, 12, 25)
-local CardColor = Color3.fromRGB(13, 17, 34)
+    pcall(function()
 
-local TextColor = Color3.fromRGB(245, 250, 255)
-
-local ColorA = Color3.fromRGB(0, 225, 255)
-local ColorB = Color3.fromRGB(170, 80, 255)
-
-local CurrentA = ColorA
-local CurrentB = ColorB
-
-local ColorObjects = {}
-local GradientObjects = {}
-
-local function RegisterColor(object, property)
-    table.insert(ColorObjects, {
-        Object = object,
-        Property = property
-    })
-end
-
-local function RegisterGradient(object)
-    table.insert(GradientObjects, object)
-end
-
---============================================================--
--- GUI
---============================================================--
-
-local Gui = Instance.new("ScreenGui")
-Gui.Name = "ZyntrixAnimationHub"
-Gui.ResetOnSpawn = false
-Gui.IgnoreGuiInset = true
-Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Gui.Parent = CoreGui
-
---============================================================--
--- BACKGROUND
---============================================================--
-
-local Background = Instance.new("Frame")
-Background.Size = UDim2.fromScale(1, 1)
-Background.BackgroundColor3 = BackgroundColor
-Background.BorderSizePixel = 0
-Background.Parent = Gui
-
---============================================================--
--- UTILITY
---============================================================--
-
-local function Corner(object, radius)
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius or 10)
-    c.Parent = object
-    return c
-end
-
-local function Stroke(object, thickness)
-    local s = Instance.new("UIStroke")
-    s.Thickness = thickness or 1
-    s.Transparency = 0.12
-    s.Color = ColorA
-    s.Parent = object
-
-    RegisterColor(s, "Color")
-
-    return s
-end
-
-local function Gradient(object)
-    local g = Instance.new("UIGradient")
-
-    g.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, ColorA),
-        ColorSequenceKeypoint.new(0.5, ColorB),
-        ColorSequenceKeypoint.new(1, ColorA)
-    })
-
-    g.Rotation = 0
-    g.Parent = object
-
-    RegisterGradient(g)
-
-    return g
-end
-
-local function Padding(object, amount)
-    local p = Instance.new("UIPadding")
-    p.PaddingTop = UDim.new(0, amount)
-    p.PaddingBottom = UDim.new(0, amount)
-    p.PaddingLeft = UDim.new(0, amount)
-    p.PaddingRight = UDim.new(0, amount)
-    p.Parent = object
-    return p
-end
-
---============================================================--
--- MAIN
---============================================================--
-
-local Main = Instance.new("Frame")
-Main.Name = "Main"
-Main.Size = UDim2.new(0, 640, 0, 410)
-Main.Position = UDim2.new(0.5, -320, 0.5, -205)
-Main.BackgroundColor3 = PanelColor
-Main.BackgroundTransparency = 0.08
-Main.BorderSizePixel = 0
-Main.ClipsDescendants = true
-Main.Parent = Gui
-
-Corner(Main, 18)
-Stroke(Main, 2)
-
---============================================================--
--- MAIN GLOW
---============================================================--
-
-local Glow = Instance.new("Frame")
-Glow.Size = UDim2.new(1, -4, 1, -4)
-Glow.Position = UDim2.new(0, 2, 0, 2)
-Glow.BackgroundTransparency = 1
-Glow.BorderSizePixel = 0
-Glow.ZIndex = 0
-Glow.Parent = Main
-
-Corner(Glow, 17)
-
-local GlowStroke = Stroke(Glow, 1)
-GlowStroke.Transparency = 0.5
-
---============================================================--
--- TOP BAR
---============================================================--
-
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 64)
-TopBar.BackgroundColor3 = Color3.fromRGB(7, 10, 22)
-TopBar.BackgroundTransparency = 0.02
-TopBar.BorderSizePixel = 0
-TopBar.ZIndex = 3
-TopBar.Parent = Main
-
-Corner(TopBar, 17)
-
---============================================================--
--- UI IMAGE
---============================================================--
-
-local UIImage = Instance.new("ImageLabel")
-UIImage.Size = UDim2.new(0, 46, 0, 46)
-UIImage.Position = UDim2.new(0, 10, 0, 9)
-UIImage.BackgroundColor3 = Color3.fromRGB(8, 12, 25)
-UIImage.BackgroundTransparency = 0.1
-UIImage.BorderSizePixel = 0
-UIImage.Image = UI_IMAGE
-UIImage.ZIndex = 4
-UIImage.Parent = TopBar
-
-Corner(UIImage, 12)
-Stroke(UIImage, 1)
-
---============================================================--
--- TITLE
---============================================================--
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -160, 0, 25)
-Title.Position = UDim2.new(0, 67, 0, 8)
-Title.BackgroundTransparency = 1
-Title.Text = UI_TEXT("ZYNTRIX VIP PRIME")
-Title.Font = Enum.Font.GothamBlack
-Title.TextSize = 18
-Title.TextColor3 = TextColor
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.ZIndex = 5
-Title.Parent = TopBar
-
---============================================================--
--- TWO COLOR TITLE SHINE
---============================================================--
-
-local TitleGradient = Gradient(Title)
-
---============================================================--
--- SUBTITLE
---============================================================--
-
-local Subtitle = Instance.new("TextLabel")
-Subtitle.Size = UDim2.new(1, -160, 0, 19)
-Subtitle.Position = UDim2.new(0, 68, 0, 34)
-Subtitle.BackgroundTransparency = 1
-Subtitle.Text = UI_TEXT("ANIMATION HUB • 32 PACK")
-Subtitle.Font = Enum.Font.GothamMedium
-Subtitle.TextSize = 10
-Subtitle.TextColor3 = Color3.fromRGB(150, 175, 200)
-Subtitle.TextXAlignment = Enum.TextXAlignment.Left
-Subtitle.ZIndex = 5
-Subtitle.Parent = TopBar
-
---============================================================--
--- MOVING TEXT LINE
---============================================================--
-
-local ShineLine = Instance.new("Frame")
-ShineLine.Size = UDim2.new(0, 100, 0, 2)
-ShineLine.Position = UDim2.new(0, 68, 1, -3)
-ShineLine.BackgroundColor3 = ColorA
-ShineLine.BorderSizePixel = 0
-ShineLine.ZIndex = 6
-ShineLine.Parent = TopBar
-
-Corner(ShineLine, 2)
-Gradient(ShineLine)
-
---============================================================--
--- MINIMIZE
---============================================================--
-
-local Minimize = Instance.new("TextButton")
-Minimize.Size = UDim2.new(0, 38, 0, 38)
-Minimize.Position = UDim2.new(1, -88, 0, 13)
-Minimize.BackgroundColor3 = Color3.fromRGB(13, 18, 34)
-Minimize.BorderSizePixel = 0
-
--- KHÔNG ICON 
-Minimize.Text = "−"
-
-Minimize.Font = Enum.Font.GothamBold
-Minimize.TextSize = 21
-Minimize.TextColor3 = TextColor
-Minimize.ZIndex = 7
-Minimize.Parent = TopBar
-
-Corner(Minimize, 10)
-Stroke(Minimize, 1)
-
---============================================================--
--- CLOSE
---============================================================--
-
-local Close = Instance.new("TextButton")
-Close.Size = UDim2.new(0, 38, 0, 38)
-Close.Position = UDim2.new(1, -43, 0, 13)
-Close.BackgroundColor3 = Color3.fromRGB(13, 18, 34)
-Close.BorderSizePixel = 0
-
--- KHÔNG ICON 
-Close.Text = "×"
-
-Close.Font = Enum.Font.GothamBold
-Close.TextSize = 19
-Close.TextColor3 = TextColor
-Close.ZIndex = 7
-Close.Parent = TopBar
-
-Corner(Close, 10)
-Stroke(Close, 1)
-
---============================================================--
--- SIDEBAR
---============================================================--
-
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 150, 1, -78)
-Sidebar.Position = UDim2.new(0, 10, 0, 69)
-Sidebar.BackgroundColor3 = Color3.fromRGB(6, 9, 19)
-Sidebar.BackgroundTransparency = 0.03
-Sidebar.BorderSizePixel = 0
-Sidebar.ZIndex = 3
-Sidebar.Parent = Main
-
-Corner(Sidebar, 13)
-Stroke(Sidebar, 1)
-
-Padding(Sidebar, 9)
-
-local SidebarLayout = Instance.new("UIListLayout")
-SidebarLayout.Padding = UDim.new(0, 7)
-SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-SidebarLayout.Parent = Sidebar
-
---============================================================--
--- CONTENT
---============================================================--
-
-local Content = Instance.new("Frame")
-Content.Size = UDim2.new(1, -173, 1, -78)
-Content.Position = UDim2.new(0, 163, 0, 69)
-Content.BackgroundColor3 = Color3.fromRGB(6, 9, 19)
-Content.BackgroundTransparency = 0.02
-Content.BorderSizePixel = 0
-Content.ClipsDescendants = true
-Content.ZIndex = 3
-Content.Parent = Main
-
-Corner(Content, 13)
-Stroke(Content, 1)
-
---============================================================--
--- PAGE TITLE
---============================================================--
-
-local PageTitle = Instance.new("TextLabel")
-PageTitle.Size = UDim2.new(1, -24, 0, 37)
-PageTitle.Position = UDim2.new(0, 12, 0, 7)
-PageTitle.BackgroundTransparency = 1
-PageTitle.Text = UI_TEXT("TRANG CHỦ")
-PageTitle.Font = Enum.Font.GothamBlack
-PageTitle.TextSize = 18
-PageTitle.TextColor3 = TextColor
-PageTitle.TextXAlignment = Enum.TextXAlignment.Left
-PageTitle.ZIndex = 5
-PageTitle.Parent = Content
-
-Gradient(PageTitle)
-
---============================================================--
--- PAGE UNDERLINE
---============================================================--
-
-local PageLine = Instance.new("Frame")
-PageLine.Size = UDim2.new(0, 130, 0, 2)
-PageLine.Position = UDim2.new(0, 12, 0, 43)
-PageLine.BackgroundColor3 = ColorA
-PageLine.BorderSizePixel = 0
-PageLine.ZIndex = 5
-PageLine.Parent = Content
-
-Corner(PageLine, 2)
-Gradient(PageLine)
-
---============================================================--
--- MENU BUTTON
---============================================================--
-
-local MenuButton = Instance.new("ImageButton")
-MenuButton.Name = "MenuButton"
-MenuButton.Size = UDim2.new(0, 58, 0, 58)
-MenuButton.Position = UDim2.new(0, 18, 0.5, -29)
-MenuButton.BackgroundColor3 = Color3.fromRGB(7, 11, 24)
-MenuButton.BackgroundTransparency = 0.02
-MenuButton.BorderSizePixel = 0
-MenuButton.Image = MENU_IMAGE
-MenuButton.Visible = false
-MenuButton.ZIndex = 20
-MenuButton.Parent = Gui
-
-Corner(MenuButton, 15)
-Stroke(MenuButton, 2)
-
---============================================================--
--- DRAG SYSTEM
---============================================================--
-
-local function MakeDraggable(object, handle)
-
-    local dragging = false
-    local dragStart
-    local startPosition
-    local activeInput
-
-    Connect(handle.InputBegan, function(input)
-
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-            dragging = true
-            dragStart = input.Position
-            startPosition = object.Position
-            activeInput = input
-        end
-    end)
-
-    Connect(UserInputService.InputChanged, function(input)
-
-        if not dragging then
-            return
-        end
-
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-
-            local delta = input.Position - dragStart
-
-            object.Position = UDim2.new(
-                startPosition.X.Scale,
-                startPosition.X.Offset + delta.X,
-                startPosition.Y.Scale,
-                startPosition.Y.Offset + delta.Y
+        local a =
+            CoreGui:FindFirstChild(
+                MAIN_NAME
             )
+
+        if a then
+            a:Destroy()
         end
+
     end)
 
-    Connect(UserInputService.InputEnded, function(input)
+    pcall(function()
 
-        if input == activeInput then
-            dragging = false
-            activeInput = nil
+        local b =
+            Player.PlayerGui:FindFirstChild(
+                MAIN_NAME
+            )
+
+        if b then
+            b:Destroy()
         end
+
     end)
+
 end
 
-MakeDraggable(Main, TopBar)
-MakeDraggable(MenuButton, MenuButton)
+getgenv().ZYNTRIX_PRIME_V9_CLEANUP =
+    Cleanup
 
---============================================================--
--- ANIMATION PACKS
---============================================================--
+--==============================================================--
+-- ANIMATION DATA
+--==============================================================--
 
 local AnimationPacks = {
 
 ["Adidas Aura"]={
-Walk=83842218823011,Run=118320322718866,Jump=109996626521204,
-Fall=95603166884636,Climb=97824616490448,Swim=134530128383903,
-SwimIdle=94922130551805,Idle1=110211186840347,Idle2=114191137265065},
+Walk=83842218823011,
+Run=118320322718866,
+Jump=109996626521204,
+Fall=95603166884636,
+Climb=97824616490448,
+Swim=134530128383903,
+SwimIdle=94922130551805,
+Idle1=110211186840347,
+Idle2=114191137265065
+},
 
 ["Adidas Community"]={
-Walk=122150855457006,Run=82598234841035,Jump=75290611992385,
-Fall=98600215928904,Climb=88763136693023,Swim=133308483266208,
-SwimIdle=109346520324160,Idle1=122257458498464,Idle2=102357151005774},
+Walk=122150855457006,
+Run=82598234841035,
+Jump=75290611992385,
+Fall=98600215928904,
+Climb=88763136693023,
+Swim=133308483266208,
+SwimIdle=109346520324160,
+Idle1=122257458498464,
+Idle2=102357151005774
+},
 
 ["Adidas Sports"]={
-Walk=18537392113,Run=18537384940,Jump=18537380791,
-Fall=18537367238,Climb=18537363391,Swim=18537389531,
-SwimIdle=18537387180,Idle1=18537376492,Idle2=18537371272},
+Walk=18537392113,
+Run=18537384940,
+Jump=18537380791,
+Fall=18537367238,
+Climb=18537363391,
+Swim=18537389531,
+SwimIdle=18537387180,
+Idle1=18537376492,
+Idle2=18537371272
+},
 
 ["Astronaut"]={
-Walk=10921046031,Run=10921039308,Jump=10921042494,
-Fall=10921040576,Climb=10921032124,Swim=10921044000,
-SwimIdle=10921045006,Idle1=10921034824},
+Walk=10921046031,
+Run=10921039308,
+Jump=10921042494,
+Fall=10921040576,
+Climb=10921032124,
+Swim=10921044000,
+SwimIdle=10921045006,
+Idle1=10921034824
+},
 
 ["Bubbly"]={
-Walk=910034870,Run=910025107,Jump=910016857,
-Fall=910001910,Climb=909997997,Swim=910028158,
-SwimIdle=910030921,Idle1=910004836,Idle2=910009958},
+Walk=910034870,
+Run=910025107,
+Jump=910016857,
+Fall=910001910,
+Climb=909997997,
+Swim=910028158,
+SwimIdle=910030921,
+Idle1=910004836,
+Idle2=910009958
+},
 
 ["Cartoon"]={
-Walk=742640026,Run=742638842,Jump=742637942,
-Fall=742637151,Climb=742636889,Swim=742639220,
-SwimIdle=742639812,Idle1=742637544,Idle2=742638445},
+Walk=742640026,
+Run=742638842,
+Jump=742637942,
+Fall=742637151,
+Climb=742636889,
+Swim=742639220,
+SwimIdle=742639812,
+Idle1=742637544,
+Idle2=742638445
+},
 
 ["Catwalk Glam"]={
-Walk=109168724482748,Run=81024476153754,Jump=116936326516985,
-Fall=92294537340807,Climb=119377220967554,Swim=134591743181628,
-SwimIdle=98854111361360,Idle1=133806214992291,Idle2=94970088341563},
+Walk=109168724482748,
+Run=81024476153754,
+Jump=116936326516985,
+Fall=92294537340807,
+Climb=119377220967554,
+Swim=134591743181628,
+SwimIdle=98854111361360,
+Idle1=133806214992291,
+Idle2=94970088341563
+},
 
 ["Elder"]={
-Walk=10921111375,Run=10921104374,Jump=10921107367,
-Fall=10921105765,Climb=10921100400,Swim=10921108971,
-SwimIdle=10921110146,Idle1=10921101664,Idle2=10921102574},
+Walk=10921111375,
+Run=10921104374,
+Jump=10921107367,
+Fall=10921105765,
+Climb=10921100400,
+Swim=10921108971,
+SwimIdle=10921110146,
+Idle1=10921101664,
+Idle2=10921102574
+},
 
 ["Levitation"]={
-Walk=616013216,Run=616010382,Jump=616008936,
-Fall=616005863,Climb=616003713,Swim=616011509,
-SwimIdle=616012453,Idle1=616006778,Idle2=616008087},
+Walk=616013216,
+Run=616010382,
+Jump=616008936,
+Fall=616005863,
+Climb=616003713,
+Swim=616011509,
+SwimIdle=616012453,
+Idle1=616006778,
+Idle2=616008087
+},
 
 ["Mage"]={
-Walk=10921152678,Run=10921148209,Jump=10921149743,
-Fall=10921148939,Climb=10921143404,Swim=10921150788,
-SwimIdle=10921151661,Idle1=10921144709,Idle2=10921145797},
+Walk=10921152678,
+Run=10921148209,
+Jump=10921149743,
+Fall=10921148939,
+Climb=10921143404,
+Swim=10921150788,
+SwimIdle=10921151661,
+Idle1=10921144709,
+Idle2=10921145797
+},
 
 ["Ninja"]={
-Walk=10921162768,Run=10921157929,Jump=10921160088,
-Fall=10921159222,Climb=10921154678,Swim=10921161002,
-SwimIdle=10922757002,Idle1=10921155160,Idle2=10921155867},
+Walk=10921162768,
+Run=10921157929,
+Jump=10921160088,
+Fall=10921159222,
+Climb=10921154678,
+Swim=10921161002,
+SwimIdle=10922757002,
+Idle1=10921155160,
+Idle2=10921155867
+},
 
 ["Oldschool"]={
-Walk=10921244891,Run=10921240218,Jump=10921242013,
-Fall=10921241244,Climb=10921229866,Swim=10921243048,
-SwimIdle=10921244018,Idle1=10921230744,Idle2=10921232093},
+Walk=10921244891,
+Run=10921240218,
+Jump=10921242013,
+Fall=10921241244,
+Climb=10921229866,
+Swim=10921243048,
+SwimIdle=10921244018,
+Idle1=10921230744,
+Idle2=10921232093
+},
 
 ["Robot"]={
-Walk=10921255446,Run=10921250460,Jump=10921252123,
-Fall=10921251156,Climb=10921247141,Swim=10921253767,
-SwimIdle=10921253767,Idle1=10921248039,Idle2=10921248831},
+Walk=10921255446,
+Run=10921250460,
+Jump=10921252123,
+Fall=10921251156,
+Climb=10921247141,
+Swim=10921253767,
+SwimIdle=10921253767,
+Idle1=10921248039,
+Idle2=10921248831
+},
 
 ["Stylish"]={
-Walk=10921276116,Run=10921283326,Jump=10921279832,
-Fall=10921278648,Climb=10921271391,Swim=10921273958,
-SwimIdle=10921272275,Idle1=10921278648,Idle2=10921279832},
+Walk=10921276116,
+Run=10921283326,
+Jump=10921279832,
+Fall=10921278648,
+Climb=10921271391,
+Swim=10921273958,
+SwimIdle=10921272275,
+Idle1=10921278648,
+Idle2=10921279832
+},
 
 ["Superhero"]={
-Walk=10921298616,Run=10921291831,Jump=10921291831,
-Fall=10921293373,Climb=10921286911,Swim=10921295495,
-SwimIdle=10921297391,Idle1=10921288909,Idle2=10921290167},
+Walk=10921298616,
+Run=10921291831,
+Jump=10921291831,
+Fall=10921293373,
+Climb=10921286911,
+Swim=10921295495,
+SwimIdle=10921297391,
+Idle1=10921288909,
+Idle2=10921290167
+},
 
 ["Toy"]={
-Walk=10921312010,Run=10921306285,Jump=10921308158,
-Fall=10921307241,Climb=10921300839,Swim=10921309319,
-SwimIdle=10921310341,Idle1=10921301576,Idle2=10921302207},
+Walk=10921312010,
+Run=10921306285,
+Jump=10921308158,
+Fall=10921307241,
+Climb=10921300839,
+Swim=10921309319,
+SwimIdle=10921310341,
+Idle1=10921301576,
+Idle2=10921302207
+},
 
 ["Vampire"]={
-Walk=10921326949,Run=10921320299,Jump=10921322186,
-Fall=10921321317,Climb=10921314188,Swim=10921324408,
-SwimIdle=10921325443,Idle1=10921315373,Idle2=10921315373},
+Walk=10921326949,
+Run=10921320299,
+Jump=10921322186,
+Fall=10921321317,
+Climb=10921314188,
+Swim=10921324408,
+SwimIdle=10921325443,
+Idle1=10921315373,
+Idle2=10921315373
+},
 
 ["Werewolf"]={
-Walk=10921342074,Run=10921336997,Jump=10921338912,
-Fall=10921337907,Climb=10921329322,Swim=10921340419,
-SwimIdle=10921341319,Idle1=10921330408,Idle2=10921333667},
+Walk=10921342074,
+Run=10921336997,
+Jump=10921338912,
+Fall=10921337907,
+Climb=10921329322,
+Swim=10921340419,
+SwimIdle=10921341319,
+Idle1=10921330408,
+Idle2=10921333667
+},
 
 ["Zombie"]={
-Walk=10921355261,Run=616163682,Jump=10921351278,
-Fall=10921350320,Climb=10921343576,Swim=10921352344,
-SwimIdle=10921353442,Idle1=10921344533,Idle2=10921345304},
+Walk=10921355261,
+Run=616163682,
+Jump=10921351278,
+Fall=10921350320,
+Climb=10921343576,
+Swim=10921352344,
+SwimIdle=10921353442,
+Idle1=10921344533,
+Idle2=10921345304
+},
 
 ["NFL"]={
-Walk=110358958299415,Run=117333533048078,Jump=119846112151352,
-Fall=129773241321032,Climb=134630013742019,Swim=132697394189921,
-SwimIdle=79090109939093,Idle1=92080889861410,Idle2=74451233229259},
+Walk=110358958299415,
+Run=117333533048078,
+Jump=119846112151352,
+Fall=129773241321032,
+Climb=134630013742019,
+Swim=132697394189921,
+SwimIdle=79090109939093,
+Idle1=92080889861410,
+Idle2=74451233229259
+},
 
 ["No Boundaries"]={
-Walk=18747074203,Run=18747070484,Jump=18747069148,
-Fall=18747062535,Climb=18747060903,Swim=18747073181,
-SwimIdle=18747071682,Idle1=18747067405,Idle2=18747063918},
+Walk=18747074203,
+Run=18747070484,
+Jump=18747069148,
+Fall=18747062535,
+Climb=18747060903,
+Swim=18747073181,
+SwimIdle=18747071682,
+Idle1=18747067405,
+Idle2=18747063918
+},
 
 ["Amazon Unboxed"]={
-Walk=90478085024465,Run=134824450619865,Jump=121454505477205,
-Fall=94788218468396,Climb=121145883950231,Swim=105962919001086,
-SwimIdle=129126268464847,Idle1=98281136301627},
+Walk=90478085024465,
+Run=134824450619865,
+Jump=121454505477205,
+Fall=94788218468396,
+Climb=121145883950231,
+Swim=105962919001086,
+SwimIdle=129126268464847,
+Idle1=98281136301627
+},
 
 ["Wicked Popular"]={
-Walk=92072849924640,Run=72301599441680,Jump=104325245285198,
-Fall=121152442762481,Climb=131326830509784,Swim=99384245425157,
-SwimIdle=113199415118199,Idle1=118832222982049,Idle2=76049494037641},
+Walk=92072849924640,
+Run=72301599441680,
+Jump=104325245285198,
+Fall=121152442762481,
+Climb=131326830509784,
+Swim=99384245425157,
+SwimIdle=113199415118199,
+Idle1=118832222982049,
+Idle2=76049494037641
+},
 
 ['Wicked "Dancing Through Life"']={
-Walk=73718308412641,Run=135515454877967,Jump=78508480717326,
-Fall=78147885297412,Climb=129447497744818,Swim=110657013921774,
-SwimIdle=129183123083281,Idle1=92849173543269,Idle2=132238900951109},
+Walk=73718308412641,
+Run=135515454877967,
+Jump=78508480717326,
+Fall=78147885297412,
+Climb=129447497744818,
+Swim=110657013921774,
+SwimIdle=129183123083281,
+Idle1=92849173543269,
+Idle2=132238900951109
+},
 
 ["Glitch Animation Pack Roblox"]={
-Walk=70532084598346,Run=133291236719695,Jump=87784517289295,
-Fall=88817521039352,Climb=99974229390885,Swim=70788156947773,
-SwimIdle=124314548544388,Idle1=118195246541519},
+Walk=70532084598346,
+Run=133291236719695,
+Jump=87784517289295,
+Fall=88817521039352,
+Climb=99974229390885,
+Swim=70788156947773,
+SwimIdle=124314548544388,
+Idle1=118195246541519
+},
 
 ["Cute Roblox"]={
-Walk=140409718187215,Run=118375157537412,Jump=132381016103721,
-Fall=77496925287217,Climb=86318575131600,Swim=95599821412670,
-SwimIdle=132170981486619,Idle1=85735421117197,Idle2=136463789054516},
+Walk=140409718187215,
+Run=118375157537412,
+Jump=132381016103721,
+Fall=77496925287217,
+Climb=86318575131600,
+Swim=95599821412670,
+SwimIdle=132170981486619,
+Idle1=85735421117197,
+Idle2=136463789054516
+},
 
 ["Furry Animation Pack Roblox"]={
-Walk=104011441852459,Run=87770060317862,Jump=102635582722041,
-Fall=137079985547592,Climb=76660530164497,Swim=99909547692332,
-SwimIdle=82429732905677,Idle1=111821292044705,Idle2=90705157329932},
+Walk=104011441852459,
+Run=87770060317862,
+Jump=102635582722041,
+Fall=137079985547592,
+Climb=76660530164497,
+Swim=99909547692332,
+SwimIdle=82429732905677,
+Idle1=111821292044705,
+Idle2=90705157329932
+},
 
 ["Gói hoạt hình cổ tích"]={
-Bundle=107350693632269,Walk=104155388409994,Run=85214521829644,
-Idle1=117086336235203,Idle2=126081566479327,Swim=81730236977194,
-SwimIdle=129566463958031,Climb=92601441790709,
-Jump=101319668376661,Fall=78205337706161},
+Bundle=107350693632269,
+Walk=104155388409994,
+Run=85214521829644,
+Idle1=117086336235203,
+Idle2=126081566479327,
+Swim=81730236977194,
+SwimIdle=129566463958031,
+Climb=92601441790709,
+Jump=101319668376661,
+Fall=78205337706161
+},
 
 ["Gói hoạt hình kiếm kép"]={
-Bundle=122770822556243,Walk=133373623053068,Run=126476138839957,
-Idle1=81578950337746,Idle2=112871358653281,Swim=87435870674395,
-SwimIdle=90091920351380,Climb=139966022555892,
-Jump=121960612860366,Fall=111755954298423},
+Bundle=122770822556243,
+Walk=133373623053068,
+Run=126476138839957,
+Idle1=81578950337746,
+Idle2=112871358653281,
+Swim=87435870674395,
+SwimIdle=90091920351380,
+Climb=139966022555892,
+Jump=121960612860366,
+Fall=111755954298423
+},
 
 ["Gói hoạt hình Boss Mini Me"]={
-Bundle=76401293400730,Walk=75106887290061,Run=110721243894880,
-Idle1=108196521384991,Idle2=106594115601501,Swim=112165407090966,
-SwimIdle=135930711226111,Climb=89290802291547,
-Jump=122885535842193,Fall=94257318048288},
+Bundle=76401293400730,
+Walk=75106887290061,
+Run=110721243894880,
+Idle1=108196521384991,
+Idle2=106594115601501,
+Swim=112165407090966,
+SwimIdle=135930711226111,
+Climb=89290802291547,
+Jump=122885535842193,
+Fall=94257318048288
+},
 
 ["Gói hoạt hình chibi dễ thương"]={
-Bundle=52466328299272,Walk=111012968948132,Run=87544781988481,
-Idle1=97384777119919,Idle2=128055646531003,Swim=97153834582507,
-SwimIdle=109521754177979,Climb=70774577087790,
-Jump=85629495208423,Fall=85731989945385},
+Bundle=52466328299272,
+Walk=111012968948132,
+Run=87544781988481,
+Idle1=97384777119919,
+Idle2=128055646531003,
+Swim=97153834582507,
+SwimIdle=109521754177979,
+Climb=70774577087790,
+Jump=85629495208423,
+Fall=85731989945385
+},
 
 ["Sự bay lơ lửng thần thiên vô tận"]={
-Bundle=249945300329160,Walk=108629385247325,Run=118409763401495,
-Idle1=91463760153972,Swim=80379634228103,
-SwimIdle=127353527524703,Climb=107930575903717,
-Jump=101407222641916,Fall=82924474222458}
+Bundle=249945300329160,
+Walk=108629385247325,
+Run=118409763401495,
+Idle1=91463760153972,
+Swim=80379634228103,
+SwimIdle=127353527524703,
+Climb=107930575903717,
+Jump=101407222641916,
+Fall=82924474222458
+}
 
 }
 
---============================================================--
--- ADDON
---============================================================--
--- THÊM PACK MỚI Ở ĐÂY
---
--- AnimationPacks["Tên pack mới"] = {
---     Walk = 123456,
---     Run = 123456,
---     Jump = 123456,
---     Fall = 123456,
---     Climb = 123456,
---     Swim = 123456,
---     SwimIdle = 123456,
---     Idle1 = 123456,
---     Idle2 = 123456
--- }
+--==============================================================--
+-- GUI
+--==============================================================--
 
---============================================================--
--- STATE
---============================================================--
+local Gui =
+    Instance.new("ScreenGui")
 
-local SelectedPack = nil
-local CurrentPage = nil
-local EffectsEnabled = true
+Gui.Name =
+    MAIN_NAME
 
-local PageButtons = {}
-local PackCards = {}
+Gui.ResetOnSpawn =
+    false
 
---============================================================--
--- ANIMATION FUNCTIONS
---============================================================--
+Gui.IgnoreGuiInset =
+    true
 
-local function GetAnimate()
-    local character = LocalPlayer.Character
+Gui.ZIndexBehavior =
+    Enum.ZIndexBehavior.Sibling
 
-    if not character then
-        return nil
-    end
-
-    return character:FindFirstChild("Animate")
-end
-
-local function SetAnimation(folder, objectName, id)
-
-    if not folder or not id then
-        return
-    end
-
-    local animation = folder:FindFirstChild(objectName)
-
-    if not animation then
-        animation = Instance.new("Animation")
-        animation.Name = objectName
-        animation.Parent = folder
-    end
-
-    animation.AnimationId = "rbxassetid://" .. tostring(id)
-end
-
-local function EnsureFolder(parent, name)
-
-    local folder = parent:FindFirstChild(name)
-
-    if not folder then
-        folder = Instance.new("Folder")
-        folder.Name = name
-        folder.Parent = parent
-    end
-
-    return folder
-end
-
-local function ApplyPack(packName)
-
-    local pack = AnimationPacks[packName]
-
-    if not pack then
-        return false
-    end
-
-    local character = LocalPlayer.Character
-
-    if not character then
-        return false
-    end
-
-    local humanoid =
-        character:FindFirstChildOfClass("Humanoid")
-
-    local animate = GetAnimate()
-
-    if not humanoid or not animate then
-        return false
-    end
-
-    if pack.Walk then
-        SetAnimation(
-            EnsureFolder(animate, "walk"),
-            "WalkAnim",
-            pack.Walk
-        )
-    end
-
-    if pack.Run then
-        SetAnimation(
-            EnsureFolder(animate, "run"),
-            "RunAnim",
-            pack.Run
-        )
-    end
-
-    if pack.Jump then
-        SetAnimation(
-            EnsureFolder(animate, "jump"),
-            "JumpAnim",
-            pack.Jump
-        )
-    end
-
-    if pack.Fall then
-        SetAnimation(
-            EnsureFolder(animate, "fall"),
-            "FallAnim",
-            pack.Fall
-        )
-    end
-
-    if pack.Climb then
-        SetAnimation(
-            EnsureFolder(animate, "climb"),
-            "ClimbAnim",
-            pack.Climb
-        )
-    end
-
-    if pack.Swim then
-        SetAnimation(
-            EnsureFolder(animate, "swim"),
-            "Swim",
-            pack.Swim
-        )
-    end
-
-    if pack.SwimIdle then
-        SetAnimation(
-            EnsureFolder(animate, "swimidle"),
-            "SwimIdle",
-            pack.SwimIdle
-        )
-    end
-
-    if pack.Idle1 or pack.Idle2 then
-
-        local idle = EnsureFolder(animate, "idle")
-
-        if pack.Idle1 then
-            SetAnimation(
-                idle,
-                "Animation1",
-                pack.Idle1
-            )
-        end
-
-        if pack.Idle2 then
-            SetAnimation(
-                idle,
-                "Animation2",
-                pack.Idle2
-            )
-        end
-    end
-
-    pcall(function()
-        animate.Disabled = true
-        task.wait()
-        animate.Disabled = false
-    end)
-
-    return true
-end
-
---============================================================--
--- APPLY RETRY
---============================================================--
-
-local ReapplyToken = 0
-
-local function SelectPack(packName)
-
-    if not AnimationPacks[packName] then
-        return
-    end
-
-    SelectedPack = packName
-    ENV.ZYNTRIX_SELECTED_PACK = packName
-
-    ReapplyToken += 1
-
-    local token = ReapplyToken
-
-    task.spawn(function()
-
-        local retryTimes = {
-            0,
-            0.15,
-            0.35,
-            0.7,
-            1.2,
-            2,
-            3
-        }
-
-        for _, delayTime in ipairs(retryTimes) do
-
-            if token ~= ReapplyToken then
-                return
-            end
-
-            if delayTime > 0 then
-                task.wait(delayTime)
-            end
-
-            if token ~= ReapplyToken then
-                return
-            end
-
-            pcall(function()
-                ApplyPack(packName)
-            end)
-        end
-    end)
-end
-
---============================================================--
--- RESPAWN
---============================================================--
-
-Connect(LocalPlayer.CharacterAdded, function(character)
-
-    local pack = SelectedPack
-
-    if not pack then
-        return
-    end
-
-    task.spawn(function()
-
-        local humanoid =
-            character:WaitForChild("Humanoid", 10)
-
-        if not humanoid then
-            return
-        end
-
-        task.wait(0.2)
-
-        SelectPack(pack)
-    end)
+pcall(function()
+    Gui.Parent = CoreGui
 end)
 
---============================================================--
--- CLEAR CONTENT
---============================================================--
+if not Gui.Parent then
+    Gui.Parent =
+        Player:WaitForChild("PlayerGui")
+end
+
+--==============================================================--
+-- HELPERS
+--==============================================================--
+
+local function Corner(parent, radius)
+
+    local c =
+        Instance.new("UICorner")
+
+    c.CornerRadius =
+        UDim.new(
+            0,
+            radius or 12
+        )
+
+    c.Parent = parent
+
+    return c
+
+end
+
+local function Stroke(
+    parent,
+    color,
+    thickness,
+    transparency
+)
+
+    local s =
+        Instance.new("UIStroke")
+
+    s.Color =
+        color or Cyan
+
+    s.Thickness =
+        thickness or 1
+
+    s.Transparency =
+        transparency or 0
+
+    s.Parent =
+        parent
+
+    return s
+
+end
+
+local function MakeText(
+    parent,
+    text,
+    size,
+    bold
+)
+
+    local t =
+        Instance.new("TextLabel")
+
+    t.BackgroundTransparency =
+        1
+
+    t.Text =
+        text
+
+    t.TextColor3 =
+        White
+
+    t.TextSize =
+        size or 14
+
+    t.Font =
+        bold
+        and Enum.Font.GothamBold
+        or Enum.Font.Gotham
+
+    t.TextXAlignment =
+        Enum.TextXAlignment.Left
+
+    t.Parent =
+        parent
+
+    return t
+
+end
+
+local function MakeButton(
+    parent,
+    text
+)
+
+    local b =
+        Instance.new("TextButton")
+
+    b.AutoButtonColor =
+        false
+
+    b.Text =
+        text
+
+    b.TextColor3 =
+        White
+
+    b.TextSize =
+        12
+
+    b.Font =
+        Enum.Font.GothamMedium
+
+    b.BackgroundColor3 =
+        Card
+
+    b.BackgroundTransparency =
+        0.12
+
+    b.BorderSizePixel =
+        0
+
+    b.Parent =
+        parent
+
+    Corner(
+        b,
+        10
+    )
+
+    Stroke(
+        b,
+        Color3.fromRGB(
+            55,
+            90,
+            150
+        ),
+        1,
+        0.35
+    )
+
+    return b
+
+end
+
+--==============================================================--
+-- MAIN
+--==============================================================--
+
+local Main =
+    Instance.new("Frame")
+
+Main.Name =
+    "Main"
+
+Main.Size =
+    UDim2.fromOffset(
+        650,
+        420
+    )
+
+Main.Position =
+    UDim2.new(
+        0.5,
+        -325,
+        0.5,
+        -210
+    )
+
+Main.BackgroundColor3 =
+    Dark
+
+Main.BackgroundTransparency =
+    0.12
+
+Main.BorderSizePixel =
+    0
+
+Main.ClipsDescendants =
+    true
+
+Main.Parent =
+    Gui
+
+Corner(
+    Main,
+    20
+)
+
+local MainStroke =
+    Stroke(
+        Main,
+        Cyan,
+        1.5,
+        0.12
+    )
+
+--==============================================================--
+-- BACKGROUND
+--==============================================================--
+
+local Background =
+    Instance.new("ImageLabel")
+
+Background.Size =
+    UDim2.fromScale(
+        1,
+        1
+    )
+
+Background.BackgroundTransparency =
+    1
+
+Background.Image =
+    BACKGROUND_IMAGE
+
+Background.ImageTransparency =
+    0.82
+
+Background.ImageColor3 =
+    Color3.fromRGB(
+        100,
+        160,
+        255
+    )
+
+Background.ScaleType =
+    Enum.ScaleType.Crop
+
+Background.ZIndex =
+    1
+
+Background.Parent =
+    Main
+
+Corner(
+    Background,
+    20
+)
+
+local BackgroundTint =
+    Instance.new("Frame")
+
+BackgroundTint.Size =
+    UDim2.fromScale(
+        1,
+        1
+    )
+
+BackgroundTint.BackgroundColor3 =
+    Color3.fromRGB(
+        5,
+        8,
+        20
+    )
+
+BackgroundTint.BackgroundTransparency =
+    0.28
+
+BackgroundTint.BorderSizePixel =
+    0
+
+BackgroundTint.ZIndex =
+    2
+
+BackgroundTint.Parent =
+    Main
+
+Corner(
+    BackgroundTint,
+    20
+)
+
+--==============================================================--
+-- TOP BAR
+--==============================================================--
+
+local Top =
+    Instance.new("Frame")
+
+Top.Size =
+    UDim2.new(
+        1,
+        0,
+        0,
+        66
+    )
+
+Top.BackgroundTransparency =
+    1
+
+Top.ZIndex =
+    10
+
+Top.Parent =
+    Main
+
+local Logo =
+    Instance.new("ImageLabel")
+
+Logo.Size =
+    UDim2.fromOffset(
+        46,
+        46
+    )
+
+Logo.Position =
+    UDim2.fromOffset(
+        12,
+        10
+    )
+
+Logo.BackgroundColor3 =
+    Card
+
+Logo.BackgroundTransparency =
+    0.1
+
+Logo.Image =
+    UI_IMAGE
+
+Logo.BorderSizePixel =
+    0
+
+Logo.ZIndex =
+    12
+
+Logo.Parent =
+    Top
+
+Corner(
+    Logo,
+    13
+)
+
+Stroke(
+    Logo,
+    Cyan,
+    1,
+    0.18
+)
+
+local Title =
+    MakeText(
+        Top,
+        "ZYNTRIX PRIME SECRET ",
+        17,
+        true
+    )
+
+Title.Position =
+    UDim2.fromOffset(
+        70,
+        8
+    )
+
+Title.Size =
+    UDim2.new(
+        1,
+        -170,
+        0,
+        25
+    )
+
+Title.ZIndex =
+    12
+
+local Subtitle =
+    MakeText(
+        Top,
+        "ANIMATION LIBRARY • 32 PACKS • V9",
+        9,
+        false
+    )
+
+Subtitle.TextColor3 =
+    Muted
+
+Subtitle.Position =
+    UDim2.fromOffset(
+        71,
+        34
+    )
+
+Subtitle.Size =
+    UDim2.new(
+        1,
+        -170,
+        0,
+        18
+    )
+
+Subtitle.ZIndex =
+    12
+
+--==============================================================--
+-- ONLINE BADGE
+--==============================================================--
+
+local Online =
+    Instance.new("Frame")
+
+Online.Size =
+    UDim2.fromOffset(
+        72,
+        27
+    )
+
+Online.Position =
+    UDim2.new(
+        1,
+        -114,
+        0,
+        17
+    )
+
+Online.BackgroundColor3 =
+    Card
+
+Online.BackgroundTransparency =
+    0.1
+
+Online.BorderSizePixel =
+    0
+
+Online.ZIndex =
+    20
+
+Online.Parent =
+    Top
+
+Corner(
+    Online,
+    14
+)
+
+Stroke(
+    Online,
+    Green,
+    1,
+    0.4
+)
+
+local Dot =
+    Instance.new("Frame")
+
+Dot.Size =
+    UDim2.fromOffset(
+        7,
+        7
+    )
+
+Dot.Position =
+    UDim2.fromOffset(
+        9,
+        10
+    )
+
+Dot.BackgroundColor3 =
+    Green
+
+Dot.BorderSizePixel =
+    0
+
+Dot.Parent =
+    Online
+
+Corner(
+    Dot,
+    8
+)
+
+local OnlineText =
+    MakeText(
+        Online,
+        "ONLINE",
+        8,
+        true
+    )
+
+OnlineText.Position =
+    UDim2.fromOffset(
+        22,
+        5
+    )
+
+OnlineText.Size =
+    UDim2.fromOffset(
+        45,
+        17
+    )
+
+OnlineText.TextColor3 =
+    Green
+
+--==============================================================--
+-- CLOSE
+--==============================================================--
+
+local Close =
+    Instance.new("TextButton")
+
+Close.Size =
+    UDim2.fromOffset(
+        30,
+        30
+    )
+
+Close.Position =
+    UDim2.new(
+        1,
+        -38,
+        0,
+        15
+    )
+
+Close.Text =
+    "×"
+
+Close.TextSize =
+    20
+
+Close.Font =
+    Enum.Font.GothamBold
+
+Close.TextColor3 =
+    White
+
+Close.BackgroundColor3 =
+    Card
+
+Close.BackgroundTransparency =
+    0.1
+
+Close.BorderSizePixel =
+    0
+
+Close.AutoButtonColor =
+    false
+
+Close.ZIndex =
+    25
+
+Close.Parent =
+    Top
+
+Corner(
+    Close,
+    10
+)
+
+Stroke(
+    Close,
+    Red,
+    1,
+    0.45
+)
+
+--==============================================================--
+-- SEARCH
+--==============================================================--
+
+local Search =
+    Instance.new("TextBox")
+
+Search.Size =
+    UDim2.new(
+        0,
+        250,
+        0,
+        36
+    )
+
+Search.Position =
+    UDim2.fromOffset(
+        14,
+        72
+    )
+
+Search.PlaceholderText =
+    "Search animation... "
+
+Search.Text =
+    ""
+
+Search.ClearTextOnFocus =
+    false
+
+Search.TextColor3 =
+    White
+
+Search.PlaceholderColor3 =
+    Muted
+
+Search.TextSize =
+    11
+
+Search.Font =
+    Enum.Font.Gotham
+
+Search.BackgroundColor3 =
+    Panel
+
+Search.BackgroundTransparency =
+    0.08
+
+Search.BorderSizePixel =
+    0
+
+Search.ZIndex =
+    15
+
+Search.Parent =
+    Main
+
+Corner(
+    Search,
+    11
+)
+
+Stroke(
+    Search,
+    Blue,
+    1,
+    0.3
+)
+
+--==============================================================--
+-- STATUS
+--==============================================================--
+
+local Status =
+    MakeText(
+        Main,
+        "READY • 32 PACKS • ANIMATION ",
+        9,
+        true
+    )
+
+Status.Position =
+    UDim2.fromOffset(
+        280,
+        80
+    )
+
+Status.Size =
+    UDim2.new(
+        1,
+        -300,
+        0,
+        20
+    )
+
+Status.TextColor3 =
+    Cyan
+
+Status.ZIndex =
+    15
+
+--==============================================================--
+-- SIDEBAR
+--==============================================================--
+
+local Sidebar =
+    Instance.new("ScrollingFrame")
+
+Sidebar.Size =
+    UDim2.fromOffset(
+        150,
+        285
+    )
+
+Sidebar.Position =
+    UDim2.fromOffset(
+        14,
+        118
+    )
+
+Sidebar.BackgroundColor3 =
+    Panel
+
+Sidebar.BackgroundTransparency =
+    0.08
+
+Sidebar.BorderSizePixel =
+    0
+
+Sidebar.ScrollBarThickness =
+    2
+
+Sidebar.CanvasSize =
+    UDim2.new()
+
+Sidebar.ZIndex =
+    12
+
+Sidebar.Parent =
+    Main
+
+Corner(
+    Sidebar,
+    14
+)
+
+Stroke(
+    Sidebar,
+    Purple,
+    1,
+    0.32
+)
+
+local SidebarLayout =
+    Instance.new("UIListLayout")
+
+SidebarLayout.Padding =
+    UDim.new(
+        0,
+        6
+    )
+
+SidebarLayout.HorizontalAlignment =
+    Enum.HorizontalAlignment.Center
+
+SidebarLayout.Parent =
+    Sidebar
+
+local SidebarPadding =
+    Instance.new("UIPadding")
+
+SidebarPadding.PaddingTop =
+    UDim.new(
+        0,
+        8
+    )
+
+SidebarPadding.PaddingBottom =
+    UDim.new(
+        0,
+        8
+    )
+
+SidebarPadding.Parent =
+    Sidebar
+
+--==============================================================--
+-- CONTENT
+--==============================================================--
+
+local Content =
+    Instance.new("ScrollingFrame")
+
+Content.Size =
+    UDim2.new(
+        1,
+        -178,
+        0,
+        285
+    )
+
+Content.Position =
+    UDim2.fromOffset(
+        178,
+        118
+    )
+
+Content.BackgroundColor3 =
+    Panel
+
+Content.BackgroundTransparency =
+    0.08
+
+Content.BorderSizePixel =
+    0
+
+Content.ScrollBarThickness =
+    3
+
+Content.CanvasSize =
+    UDim2.new()
+
+Content.ZIndex =
+    12
+
+Content.Parent =
+    Main
+
+Corner(
+    Content,
+    14
+)
+
+Stroke(
+    Content,
+    Cyan,
+    1,
+    0.32
+)
+
+local ContentLayout =
+    Instance.new("UIListLayout")
+
+ContentLayout.Padding =
+    UDim.new(
+        0,
+        7
+    )
+
+ContentLayout.Parent =
+    Content
+
+local ContentPadding =
+    Instance.new("UIPadding")
+
+ContentPadding.PaddingTop =
+    UDim.new(
+        0,
+        9
+    )
+
+ContentPadding.PaddingBottom =
+    UDim.new(
+        0,
+        9
+    )
+
+ContentPadding.PaddingLeft =
+    UDim.new(
+        0,
+        9
+    )
+
+ContentPadding.PaddingRight =
+    UDim.new(
+        0,
+        9
+    )
+
+ContentPadding.Parent =
+    Content
+
+--==============================================================--
+-- SIDEBAR TABS
+--==============================================================--
+
+local function CreateTab(
+    text,
+    callback
+)
+
+    local Button =
+        MakeButton(
+            Sidebar,
+            text
+        )
+
+    Button.Size =
+        UDim2.new(
+            1,
+            -14,
+            0,
+            38
+        )
+
+    Button.ZIndex =
+        18
+
+    Connect(
+        Button.MouseEnter,
+        function()
+
+            TweenService:Create(
+                Button,
+                TweenInfo.new(
+                    0.18
+                ),
+                {
+                    BackgroundColor3 =
+                        CardHover
+                }
+            ):Play()
+
+        end
+    )
+
+    Connect(
+        Button.MouseLeave,
+        function()
+
+            TweenService:Create(
+                Button,
+                TweenInfo.new(
+                    0.18
+                ),
+                {
+                    BackgroundColor3 =
+                        Card
+                }
+            ):Play()
+
+        end
+    )
+
+    Connect(
+        Button.Activated,
+        function()
+
+            callback()
+
+        end
+    )
+
+    return Button
+
+end
+
+--==============================================================--
+-- CONTENT HELPERS
+--==============================================================--
 
 local function ClearContent()
 
-    for _, child in ipairs(Content:GetChildren()) do
+    for _, child in ipairs(
+        Content:GetChildren()
+    ) do
 
-        if child ~= PageTitle
-        and child ~= PageLine then
-
-            pcall(function()
-                child:Destroy()
-            end)
-
+        if child:IsA("GuiObject") then
+            child:Destroy()
         end
+
     end
+
 end
 
---============================================================--
--- COMING SOON
---============================================================--
+local function UpdateCanvas()
 
-local function ShowComingSoon()
+    task.defer(
+        function()
 
-    ClearContent()
-
-    local box = Instance.new("Frame")
-    box.Size = UDim2.new(1, -30, 0, 130)
-    box.Position = UDim2.new(0, 15, 0.5, -50)
-    box.BackgroundColor3 = CardColor
-    box.BorderSizePixel = 0
-    box.Parent = Content
-
-    Corner(box, 14)
-    Stroke(box, 1)
-
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.new(1, -20, 0, 45)
-    text.Position = UDim2.new(0, 10, 0.5, -25)
-    text.BackgroundTransparency = 1
-    text.Text = UI_TEXT("COMING SOON")
-    text.Font = Enum.Font.GothamBlack
-    text.TextSize = 24
-    text.TextColor3 = TextColor
-    text.Parent = box
-
-    Gradient(text)
-end
-
---============================================================--
--- PACK CARD
---============================================================--
-
-local function CreatePackCard(parent, packName)
-
-    local card = Instance.new("Frame")
-    card.Name = "PackCard"
-    card.Size = UDim2.new(1, -8, 0, 72)
-    card.BackgroundColor3 = CardColor
-    card.BackgroundTransparency = 0.03
-    card.BorderSizePixel = 0
-    card.Parent = parent
-
-    Corner(card, 11)
-    Stroke(card, 1)
-
-    local accent = Instance.new("Frame")
-    accent.Size = UDim2.new(0, 3, 1, -16)
-    accent.Position = UDim2.new(0, 5, 0, 8)
-    accent.BackgroundColor3 = ColorA
-    accent.BorderSizePixel = 0
-    accent.Parent = card
-
-    Corner(accent, 3)
-    Gradient(accent)
-
-    local name = Instance.new("TextLabel")
-    name.Size = UDim2.new(1, -145, 0, 27)
-    name.Position = UDim2.new(0, 17, 0, 7)
-    name.BackgroundTransparency = 1
-    name.Text = UI_TEXT(packName)
-    name.Font = Enum.Font.GothamBold
-    name.TextSize = 12
-    name.TextColor3 = TextColor
-    name.TextXAlignment = Enum.TextXAlignment.Left
-    name.TextTruncate = Enum.TextTruncate.AtEnd
-    name.Parent = card
-
-    Gradient(name)
-
-    local status = Instance.new("TextLabel")
-    status.Name = "Status"
-    status.Size = UDim2.new(1, -145, 0, 20)
-    status.Position = UDim2.new(0, 17, 0, 38)
-    status.BackgroundTransparency = 1
-    status.Text = UI_TEXT("CHƯA CHỌN")
-    status.Font = Enum.Font.GothamMedium
-    status.TextSize = 9
-    status.TextColor3 = Color3.fromRGB(115, 135, 160)
-    status.TextXAlignment = Enum.TextXAlignment.Left
-    status.Parent = card
-
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 108, 0, 40)
-    button.Position = UDim2.new(1, -118, 0.5, -20)
-    button.BackgroundColor3 = Color3.fromRGB(8, 60, 80)
-    button.BorderSizePixel = 0
-    button.Text = UI_TEXT("ÁP DỤNG")
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 10
-    button.TextColor3 = TextColor
-    button.Parent = card
-
-    Corner(button, 9)
-    Stroke(button, 1)
-    Gradient(button)
-
-    Connect(button.MouseButton1Click, function()
-
-        SelectPack(packName)
-
-        for _, data in pairs(PackCards) do
-
-            if data.Status then
-                data.Status.Text = UI_TEXT("CHƯA CHỌN")
-                data.Status.TextColor3 =
-                    Color3.fromRGB(115, 135, 160)
-            end
+            Content.CanvasSize =
+                UDim2.new(
+                    0,
+                    0,
+                    0,
+                    ContentLayout.AbsoluteContentSize.Y
+                    + 25
+                )
 
         end
+    )
 
-        status.Text = UI_TEXT("ĐANG SỬ DỤNG")
-        status.TextColor3 =
-            Color3.fromRGB(0, 255, 160)
+end
+
+--==============================================================--
+-- ANIMATION APPLY
+--==============================================================--
+
+local CurrentPackName = nil
+local ApplyToken = 0
+
+local function GetAnimate()
+
+    local Character =
+        Player.Character
+
+    if not Character then
+        return nil
+    end
+
+    return Character:FindFirstChild(
+        "Animate"
+    )
+
+end
+
+local function SetAnimation(
+    parent,
+    name,
+    id
+)
+
+    if not parent or not id then
+        return
+    end
+
+    local animation =
+        parent:FindFirstChild(
+            name
+        )
+
+    if not animation then
+
+        animation =
+            Instance.new(
+                "Animation"
+            )
+
+        animation.Name =
+            name
+
+        animation.Parent =
+            parent
+
+    end
+
+    pcall(function()
+
+        animation.AnimationId =
+            "rbxassetid://" ..
+            tostring(id)
 
     end)
 
-    PackCards[packName] = {
-        Card = card,
-        Status = status
-    }
-
-    return card
 end
 
---============================================================--
--- PACK PAGE
---============================================================--
+local function ApplyPack(
+    packName
+)
 
-local function ShowPackPage()
+    local pack =
+        AnimationPacks[
+            packName
+        ]
+
+    if not pack then
+        return
+    end
+
+    CurrentPackName =
+        packName
+
+    ApplyToken += 1
+
+    local token =
+        ApplyToken
+
+    Status.Text =
+        "APPLYING • " ..
+        packName ..
+        " "
+
+    task.spawn(
+        function()
+
+            local retries = {
+                0,
+                0.15,
+                0.35,
+                0.7,
+                1.2,
+                2
+            }
+
+            for _, delayTime in ipairs(
+                retries
+            ) do
+
+                if not Alive
+                or token ~= ApplyToken then
+                    return
+                end
+
+                if delayTime > 0 then
+                    task.wait(delayTime)
+                end
+
+                local Animate =
+                    GetAnimate()
+
+                if Animate then
+
+                    pcall(
+                        function()
+
+                            local walk =
+                                Animate:FindFirstChild(
+                                    "walk"
+                                )
+
+                            if walk then
+
+                                SetAnimation(
+                                    walk,
+                                    "WalkAnim",
+                                    pack.Walk
+                                )
+
+                            end
+
+                            local run =
+                                Animate:FindFirstChild(
+                                    "run"
+                                )
+
+                            if run then
+
+                                SetAnimation(
+                                    run,
+                                    "RunAnim",
+                                    pack.Run
+                                )
+
+                            end
+
+                            local jump =
+                                Animate:FindFirstChild(
+                                    "jump"
+                                )
+
+                            if jump then
+
+                                SetAnimation(
+                                    jump,
+                                    "JumpAnim",
+                                    pack.Jump
+                                )
+
+                            end
+
+                            local fall =
+                                Animate:FindFirstChild(
+                                    "fall"
+                                )
+
+                            if fall then
+
+                                SetAnimation(
+                                    fall,
+                                    "FallAnim",
+                                    pack.Fall
+                                )
+
+                            end
+
+                            local climb =
+                                Animate:FindFirstChild(
+                                    "climb"
+                                )
+
+                            if climb then
+
+                                SetAnimation(
+                                    climb,
+                                    "ClimbAnim",
+                                    pack.Climb
+                                )
+
+                            end
+
+                            local swim =
+                                Animate:FindFirstChild(
+                                    "swim"
+                                )
+
+                            if swim then
+
+                                SetAnimation(
+                                    swim,
+                                    "Swim",
+                                    pack.Swim
+                                )
+
+                            end
+
+                            local swimIdle =
+                                Animate:FindFirstChild(
+                                    "swimidle"
+                                )
+
+                            if swimIdle then
+
+                                SetAnimation(
+                                    swimIdle,
+                                    "SwimIdle",
+                                    pack.SwimIdle
+                                )
+
+                            end
+
+                            local idle =
+                                Animate:FindFirstChild(
+                                    "idle"
+                                )
+
+                            if idle then
+
+                                if pack.Idle1 then
+
+                                    SetAnimation(
+                                        idle,
+                                        "Animation1",
+                                        pack.Idle1
+                                    )
+
+                                end
+
+                                if pack.Idle2 then
+
+                                    SetAnimation(
+                                        idle,
+                                        "Animation2",
+                                        pack.Idle2
+                                    )
+
+                                end
+
+                            end
+
+                        end
+                    )
+
+                    Status.Text =
+                        "ACTIVE • " ..
+                        packName ..
+                        " "
+
+                    return
+
+                end
+
+            end
+
+            Status.Text =
+                "RETRY • CHARACTER CHƯA SẴN SÀNG "
+
+        end
+    )
+
+end
+
+--==============================================================--
+-- PACK CARD
+--==============================================================--
+
+local PackCards = {}
+
+local function CreatePackCard(
+    packName
+)
+
+    local CardButton =
+        Instance.new(
+            "TextButton"
+        )
+
+    CardButton.Name =
+        packName
+
+    CardButton.Size =
+        UDim2.new(
+            1,
+            -4,
+            0,
+            58
+        )
+
+    CardButton.Text =
+        ""
+
+    CardButton.AutoButtonColor =
+        false
+
+    CardButton.BackgroundColor3 =
+        Card
+
+    CardButton.BackgroundTransparency =
+        0.06
+
+    CardButton.BorderSizePixel =
+        0
+
+    CardButton.ZIndex =
+        20
+
+    CardButton.Parent =
+        Content
+
+    Corner(
+        CardButton,
+        12
+    )
+
+    local Border =
+        Stroke(
+            CardButton,
+            Color3.fromRGB(
+                50,
+                100,
+                160
+            ),
+            1,
+            0.35
+        )
+
+    local Accent =
+        Instance.new("Frame")
+
+    Accent.Size =
+        UDim2.fromOffset(
+            3,
+            34
+        )
+
+    Accent.Position =
+        UDim2.fromOffset(
+            9,
+            12
+        )
+
+    Accent.BackgroundColor3 =
+        Cyan
+
+    Accent.BorderSizePixel =
+        0
+
+    Accent.ZIndex =
+        21
+
+    Accent.Parent =
+        CardButton
+
+    Corner(
+        Accent,
+        3
+    )
+
+    local Name =
+        MakeText(
+            CardButton,
+            packName,
+            12,
+            true
+        )
+
+    Name.Position =
+        UDim2.fromOffset(
+            21,
+            8
+        )
+
+    Name.Size =
+        UDim2.new(
+            1,
+            -90,
+            0,
+            20
+        )
+
+    Name.ZIndex =
+        22
+
+    local Info =
+        MakeText(
+            CardButton,
+            "ANIMATION PACK • READY ",
+            8,
+            false
+        )
+
+    Info.Position =
+        UDim2.fromOffset(
+            21,
+            31
+        )
+
+    Info.Size =
+        UDim2.new(
+            1,
+            -90,
+            0,
+            16
+        )
+
+    Info.TextColor3 =
+        Muted
+
+    Info.ZIndex =
+        22
+
+    local Arrow =
+        MakeText(
+            CardButton,
+            "›",
+            22,
+            true
+        )
+
+    Arrow.Position =
+        UDim2.new(
+            1,
+            -36,
+            0,
+            17
+        )
+
+    Arrow.Size =
+        UDim2.fromOffset(
+            20,
+            24
+        )
+
+    Arrow.TextColor3 =
+        Cyan
+
+    Arrow.ZIndex =
+        22
+
+    Connect(
+        CardButton.MouseEnter,
+        function()
+
+            if not EffectsEnabled then
+                return
+            end
+
+            TweenService:Create(
+                CardButton,
+                TweenInfo.new(
+                    0.18,
+                    Enum.EasingStyle.Sine
+                ),
+                {
+                    BackgroundColor3 =
+                        CardHover
+                }
+            ):Play()
+
+            TweenService:Create(
+                Accent,
+                TweenInfo.new(
+                    0.18
+                ),
+                {
+                    Size =
+                        UDim2.fromOffset(
+                            5,
+                            38
+                        )
+                }
+            ):Play()
+
+            Border.Transparency =
+                0.05
+
+        end
+    )
+
+    Connect(
+        CardButton.MouseLeave,
+        function()
+
+            TweenService:Create(
+                CardButton,
+                TweenInfo.new(
+                    0.22
+                ),
+                {
+                    BackgroundColor3 =
+                        Card
+                }
+            ):Play()
+
+            TweenService:Create(
+                Accent,
+                TweenInfo.new(
+                    0.22
+                ),
+                {
+                    Size =
+                        UDim2.fromOffset(
+                            3,
+                            34
+                        )
+                }
+            ):Play()
+
+            Border.Transparency =
+                0.35
+
+        end
+    )
+
+    Connect(
+        CardButton.Activated,
+        function()
+
+            ApplyPack(
+                packName
+            )
+
+            TweenService:Create(
+                CardButton,
+                TweenInfo.new(
+                    0.1
+                ),
+                {
+                    BackgroundColor3 =
+                        Color3.fromRGB(
+                            25,
+                            38,
+                            65
+                        )
+                }
+            ):Play()
+
+            task.delay(
+                0.12,
+                function()
+
+                    if CardButton.Parent then
+
+                        TweenService:Create(
+                            CardButton,
+                            TweenInfo.new(
+                                0.25
+                            ),
+                            {
+                                BackgroundColor3 =
+                                    Card
+                            }
+                        ):Play()
+
+                    end
+
+                end
+            )
+
+        end
+    )
+
+    table.insert(
+        PackCards,
+        {
+            Button = CardButton,
+            Name = packName
+        }
+    )
+
+end
+
+--==============================================================--
+-- RENDER ANIMATION
+--==============================================================--
+
+local function RenderAnimations(
+    query
+)
 
     ClearContent()
-
-    PageTitle.Text = UI_TEXT("GÓI HOẠT HÌNH")
-
-    local Search = Instance.new("TextBox")
-    Search.Size = UDim2.new(1, -24, 0, 38)
-    Search.Position = UDim2.new(0, 12, 0, 51)
-    Search.BackgroundColor3 = Color3.fromRGB(12, 16, 31)
-    Search.BorderSizePixel = 0
-    Search.ClearTextOnFocus = false
-    Search.PlaceholderText =
-        UI_TEXT("TÌM KIẾM GÓI HOẠT HÌNH")
-    Search.PlaceholderColor3 =
-        Color3.fromRGB(100, 120, 145)
-    Search.Text = ""
-    Search.TextColor3 = TextColor
-    Search.Font = Enum.Font.Gotham
-    Search.TextSize = 11
-    Search.TextXAlignment = Enum.TextXAlignment.Left
-    Search.Parent = Content
-
-    Corner(Search, 10)
-    Stroke(Search, 1)
-
-    Padding(Search, 9)
-
-    local Scroll = Instance.new("ScrollingFrame")
-    Scroll.Size = UDim2.new(1, -24, 1, -101)
-    Scroll.Position = UDim2.new(0, 12, 0, 96)
-    Scroll.BackgroundTransparency = 1
-    Scroll.BorderSizePixel = 0
-    Scroll.ScrollBarThickness = 3
-    Scroll.ScrollBarImageColor3 = ColorA
-    Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    Scroll.Parent = Content
-
-    local Layout = Instance.new("UIListLayout")
-    Layout.Padding = UDim.new(0, 7)
-    Layout.SortOrder = Enum.SortOrder.Name
-    Layout.Parent = Scroll
 
     PackCards = {}
 
-    for packName in pairs(AnimationPacks) do
-        CreatePackCard(Scroll, packName)
+    query =
+        string.lower(
+            tostring(
+                query or ""
+            )
+        )
+
+    local count = 0
+
+    for packName in pairs(
+        AnimationPacks
+    ) do
+
+        if query == ""
+        or string.find(
+            string.lower(
+                packName
+            ),
+            query,
+            1,
+            true
+        ) then
+
+            CreatePackCard(
+                packName
+            )
+
+            count += 1
+
+        end
+
     end
 
-    if SelectedPack and PackCards[SelectedPack] then
+    Status.Text =
+        "ANIMATION • " ..
+        tostring(count) ..
+        " PACK "
 
-        PackCards[SelectedPack].Status.Text =
-            UI_TEXT("ĐANG SỬ DỤNG")
+    UpdateCanvas()
 
-        PackCards[SelectedPack].Status.TextColor3 =
-            Color3.fromRGB(0, 255, 160)
+end
+
+--==============================================================--
+-- TABS
+--==============================================================--
+
+-- TAB 1: ANIMATION
+CreateTab(
+    "ANIMATION ",
+    function()
+
+        Search.Visible =
+            true
+
+        RenderAnimations(
+            Search.Text
+        )
+
     end
+)
 
-    Connect(Search:GetPropertyChangedSignal("Text"), function()
+-- TAB 2: ĐỂ TRỐNG
+CreateTab(
+    "",
+    function()
+        ClearContent()
+        Status.Text = ""
+    end
+)
 
-        local query = string.lower(Search.Text)
+-- TAB 3: ĐỂ TRỐNG
+CreateTab(
+    "",
+    function()
+        ClearContent()
+        Status.Text = ""
+    end
+)
 
-        for packName, data in pairs(PackCards) do
+-- TAB 4: ĐỂ TRỐNG
+CreateTab(
+    "",
+    function()
+        ClearContent()
+        Status.Text = ""
+    end
+)
 
-            local match =
-                query == ""
-                or string.find(
-                    string.lower(packName),
-                    query,
-                    1,
-                    true
+-- TAB 5: ĐỂ TRỐNG
+CreateTab(
+    "",
+    function()
+        ClearContent()
+        Status.Text = ""
+    end
+)
+
+--==============================================================--
+-- SEARCH
+--==============================================================--
+
+Connect(
+    Search:GetPropertyChangedSignal(
+        "Text"
+    ),
+    function()
+
+        RenderAnimations(
+            Search.Text
+        )
+
+    end
+)
+
+--==============================================================--
+-- RESPAWN AUTO APPLY
+--==============================================================--
+
+Connect(
+    Player.CharacterAdded,
+    function()
+
+        if not CurrentPackName then
+            return
+        end
+
+        local Saved =
+            CurrentPackName
+
+        task.spawn(
+            function()
+
+                task.wait(0.6)
+
+                if Alive
+                and AnimationPacks[
+                    Saved
+                ] then
+
+                    ApplyPack(
+                        Saved
+                    )
+
+                end
+
+            end
+        )
+
+    end
+)
+
+--==============================================================--
+-- CANVAS UPDATE
+--==============================================================--
+
+Connect(
+    ContentLayout:GetPropertyChangedSignal(
+        "AbsoluteContentSize"
+    ),
+    UpdateCanvas
+)
+
+Connect(
+    SidebarLayout:GetPropertyChangedSignal(
+        "AbsoluteContentSize"
+    ),
+    function()
+
+        Sidebar.CanvasSize =
+            UDim2.new(
+                0,
+                0,
+                0,
+                SidebarLayout.AbsoluteContentSize.Y
+                + 20
+            )
+
+    end
+)
+
+--==============================================================--
+-- DRAG SYSTEM
+--==============================================================--
+
+local function MakeDraggable(
+    Object,
+    Handle
+)
+
+    local Dragging = false
+    local DragStart
+    local StartPosition
+
+    Connect(
+        Handle.InputBegan,
+        function(input)
+
+            if input.UserInputType ==
+                Enum.UserInputType.MouseButton1
+            or input.UserInputType ==
+                Enum.UserInputType.Touch then
+
+                Dragging = true
+
+                DragStart =
+                    input.Position
+
+                StartPosition =
+                    Object.Position
+
+            end
+
+        end
+    )
+
+    Connect(
+        Handle.InputEnded,
+        function(input)
+
+            if input.UserInputType ==
+                Enum.UserInputType.MouseButton1
+            or input.UserInputType ==
+                Enum.UserInputType.Touch then
+
+                Dragging = false
+
+            end
+
+        end
+    )
+
+    Connect(
+        UserInputService.InputChanged,
+        function(input)
+
+            if not Dragging then
+                return
+            end
+
+            if input.UserInputType ~=
+                Enum.UserInputType.MouseMovement
+            and input.UserInputType ~=
+                Enum.UserInputType.Touch then
+                return
+            end
+
+            local Delta =
+                input.Position -
+                DragStart
+
+            Object.Position =
+                UDim2.new(
+                    StartPosition.X.Scale,
+                    StartPosition.X.Offset
+                    + Delta.X,
+
+                    StartPosition.Y.Scale,
+                    StartPosition.Y.Offset
+                    + Delta.Y
                 )
 
-            data.Card.Visible = match ~= nil
         end
-    end)
-end
-
---============================================================--
--- CONTROL PAGE
---============================================================--
-
-local function ShowControlPage()
-
-    ClearContent()
-
-    PageTitle.Text = UI_TEXT("ĐIỀU KHIỂN")
-
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -24, 0, 86)
-    card.Position = UDim2.new(0, 12, 0, 55)
-    card.BackgroundColor3 = CardColor
-    card.BorderSizePixel = 0
-    card.Parent = Content
-
-    Corner(card, 12)
-    Stroke(card, 1)
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -130, 0, 25)
-    title.Position = UDim2.new(0, 13, 0, 9)
-    title.BackgroundTransparency = 1
-    title.Text = UI_TEXT("TỰ KHÔI PHỤC HỒI SINH")
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 12
-    title.TextColor3 = TextColor
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = card
-
-    Gradient(title)
-
-    local desc = Instance.new("TextLabel")
-    desc.Size = UDim2.new(1, -130, 0, 30)
-    desc.Position = UDim2.new(0, 13, 0, 37)
-    desc.BackgroundTransparency = 1
-    desc.Text = UI_TEXT(
-        "Tự áp dụng lại gói sau khi nhân vật hồi sinh"
     )
-    desc.Font = Enum.Font.Gotham
-    desc.TextSize = 9
-    desc.TextColor3 =
-        Color3.fromRGB(130, 150, 175)
-    desc.TextXAlignment = Enum.TextXAlignment.Left
-    desc.TextWrapped = true
-    desc.Parent = card
 
-    local status = Instance.new("TextButton")
-    status.Size = UDim2.new(0, 104, 0, 40)
-    status.Position = UDim2.new(1, -116, 0.5, -20)
-    status.BackgroundColor3 =
-        Color3.fromRGB(0, 105, 85)
-    status.BorderSizePixel = 0
-    status.Text = UI_TEXT("ĐANG BẬT")
-    status.Font = Enum.Font.GothamBold
-    status.TextSize = 10
-    status.TextColor3 = TextColor
-    status.Parent = card
-
-    Corner(status, 9)
-    Stroke(status, 1)
-
-    local enabled = true
-
-    Connect(status.MouseButton1Click, function()
-
-        enabled = not enabled
-
-        if enabled then
-
-            status.Text = UI_TEXT("ĐANG BẬT")
-            status.BackgroundColor3 =
-                Color3.fromRGB(0, 105, 85)
-
-        else
-
-            status.Text = UI_TEXT("ĐÃ TẮT")
-            status.BackgroundColor3 =
-                Color3.fromRGB(70, 35, 48)
-
-        end
-    end)
 end
 
---============================================================--
--- SETTINGS PAGE
---============================================================--
+MakeDraggable(
+    Main,
+    Top
+)
 
-local function ShowSettingsPage()
+--==============================================================--
+-- FLOATING MENU
+--==============================================================--
 
-    ClearContent()
-
-    PageTitle.Text = UI_TEXT("CÀI ĐẶT")
-
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, -24, 0, 86)
-    card.Position = UDim2.new(0, 12, 0, 55)
-    card.BackgroundColor3 = CardColor
-    card.BorderSizePixel = 0
-    card.Parent = Content
-
-    Corner(card, 12)
-    Stroke(card, 1)
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -130, 0, 25)
-    title.Position = UDim2.new(0, 13, 0, 9)
-    title.BackgroundTransparency = 1
-    title.Text = UI_TEXT("HIỆU ỨNG GIAO DIỆN")
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 12
-    title.TextColor3 = TextColor
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = card
-
-    Gradient(title)
-
-    local desc = Instance.new("TextLabel")
-    desc.Size = UDim2.new(1, -130, 0, 30)
-    desc.Position = UDim2.new(0, 13, 0, 37)
-    desc.BackgroundTransparency = 1
-    desc.Text = UI_TEXT(
-        "Màu chạy • chữ 2 màu • hiệu ứng shine"
+local MenuButton =
+    Instance.new(
+        "ImageButton"
     )
-    desc.Font = Enum.Font.Gotham
-    desc.TextSize = 9
-    desc.TextColor3 =
-        Color3.fromRGB(130, 150, 175)
-    desc.TextXAlignment = Enum.TextXAlignment.Left
-    desc.Parent = card
 
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 104, 0, 40)
-    toggle.Position = UDim2.new(1, -116, 0.5, -20)
-    toggle.BackgroundColor3 =
-        Color3.fromRGB(0, 105, 85)
-    toggle.BorderSizePixel = 0
-    toggle.Text = UI_TEXT("ĐANG BẬT")
-    toggle.Font = Enum.Font.GothamBold
-    toggle.TextSize = 10
-    toggle.TextColor3 = TextColor
-    toggle.Parent = card
+MenuButton.Name =
+    "FloatingMenu"
 
-    Corner(toggle, 9)
-    Stroke(toggle, 1)
+MenuButton.Size =
+    UDim2.fromOffset(
+        58,
+        58
+    )
 
-    Connect(toggle.MouseButton1Click, function()
+MenuButton.Position =
+    UDim2.new(
+        1,
+        -76,
+        0.5,
+        -29
+    )
 
-        EffectsEnabled = not EffectsEnabled
+MenuButton.BackgroundColor3 =
+    Panel
 
-        if EffectsEnabled then
+MenuButton.BackgroundTransparency =
+    0.05
 
-            toggle.Text = UI_TEXT("ĐANG BẬT")
-            toggle.BackgroundColor3 =
-                Color3.fromRGB(0, 105, 85)
+MenuButton.BorderSizePixel =
+    0
 
-        else
+MenuButton.Image =
+    MENU_IMAGE
 
-            toggle.Text = UI_TEXT("ĐÃ TẮT")
-            toggle.BackgroundColor3 =
-                Color3.fromRGB(70, 35, 48)
+MenuButton.Visible =
+    false
 
-        end
-    end)
-end
+MenuButton.AutoButtonColor =
+    false
 
---============================================================--
--- PAGE SYSTEM
---============================================================--
+MenuButton.ZIndex =
+    100
 
-local Pages = {
-    "TRANG CHỦ",
-    "ĐIỀU KHIỂN",
-    "GÓI HOẠT HÌNH",
-    "TRÒ CHƠI",
-    "CÀI ĐẶT"
-}
+MenuButton.Parent =
+    Gui
 
-local function OpenPage(pageName)
+Corner(
+    MenuButton,
+    17
+)
 
-    CurrentPage = pageName
+local MenuStroke =
+    Stroke(
+        MenuButton,
+        Cyan,
+        1.5,
+        0.15
+    )
 
-    for name, button in pairs(PageButtons) do
+MakeDraggable(
+    MenuButton,
+    MenuButton
+)
 
-        if name == pageName then
-            button.BackgroundColor3 =
-                Color3.fromRGB(0, 75, 100)
-        else
-            button.BackgroundColor3 =
-                Color3.fromRGB(11, 15, 29)
-        end
-    end
-
-    if pageName == "GÓI HOẠT HÌNH" then
-
-        ShowPackPage()
-
-    elseif pageName == "ĐIỀU KHIỂN" then
-
-        ShowControlPage()
-
-    elseif pageName == "CÀI ĐẶT" then
-
-        ShowSettingsPage()
-
-    else
-
-        ShowComingSoon()
-        PageTitle.Text = UI_TEXT(pageName)
-
-    end
-end
-
---============================================================--
--- PAGE BUTTONS
---============================================================--
-
-for index, pageName in ipairs(Pages) do
-
-    local button = Instance.new("TextButton")
-    button.Name = "Page_" .. index
-    button.Size = UDim2.new(1, -8, 0, 43)
-    button.BackgroundColor3 =
-        Color3.fromRGB(11, 15, 29)
-    button.BorderSizePixel = 0
-    button.Text = UI_TEXT(pageName)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 10
-    button.TextColor3 = TextColor
-    button.LayoutOrder = index
-    button.ZIndex = 5
-    button.Parent = Sidebar
-
-    Corner(button, 9)
-    Stroke(button, 1)
-
-    Gradient(button)
-
-    PageButtons[pageName] = button
-
-    Connect(button.MouseButton1Click, function()
-        OpenPage(pageName)
-    end)
-end
-
---============================================================--
+--==============================================================--
 -- OPEN / CLOSE
---============================================================--
+--==============================================================--
 
-local IsOpen = true
+local MainOpen =
+    true
 
-local function OpenMain()
+local function ShowMain()
 
-    IsOpen = true
+    MainOpen =
+        true
 
-    MenuButton.Visible = false
-    Main.Visible = true
+    Main.Visible =
+        true
 
-    local oldSize = Main.Size
+    MenuButton.Visible =
+        false
 
-    Main.Size = UDim2.new(0, 560, 0, 350)
+    Main.Size =
+        UDim2.fromOffset(
+            610,
+            395
+        )
+
+    Main.BackgroundTransparency =
+        1
 
     TweenService:Create(
         Main,
         TweenInfo.new(
-            0.3,
+            0.42,
             Enum.EasingStyle.Quint,
             Enum.EasingDirection.Out
         ),
         {
-            Size = oldSize
+            Size =
+                UDim2.fromOffset(
+                    650,
+                    420
+                ),
+
+            BackgroundTransparency =
+                0.12
         }
     ):Play()
+
 end
 
-local function CloseMain()
+local function HideMain()
 
-    IsOpen = false
+    MainOpen =
+        false
+
+    local Tween =
+        TweenService:Create(
+            Main,
+            TweenInfo.new(
+                0.30,
+                Enum.EasingStyle.Quint,
+                Enum.EasingDirection.In
+            ),
+            {
+                Size =
+                    UDim2.fromOffset(
+                        600,
+                        390
+                    ),
+
+                BackgroundTransparency =
+                    1
+            }
+        )
+
+    Tween:Play()
+
+    Tween.Completed:Once(
+        function()
+
+            if not MainOpen then
+
+                Main.Visible =
+                    false
+
+                MenuButton.Visible =
+                    true
+
+            end
+
+        end
+    )
+
+end
+
+local Minimize =
+    Instance.new(
+        "TextButton"
+    )
+
+Minimize.Size =
+    UDim2.fromOffset(
+        30,
+        30
+    )
+
+Minimize.Position =
+    UDim2.new(
+        1,
+        -76,
+        0,
+        15
+    )
+
+Minimize.Text =
+    "−"
+
+Minimize.TextSize =
+    19
+
+Minimize.Font =
+    Enum.Font.GothamBold
+
+Minimize.TextColor3 =
+    White
+
+Minimize.BackgroundColor3 =
+    Card
+
+Minimize.BackgroundTransparency =
+    0.1
+
+Minimize.BorderSizePixel =
+    0
+
+Minimize.AutoButtonColor =
+    false
+
+Minimize.ZIndex =
+    25
+
+Minimize.Parent =
+    Top
+
+Corner(
+    Minimize,
+    10
+)
+
+Connect(
+    Minimize.Activated,
+    HideMain
+)
+
+Connect(
+    MenuButton.Activated,
+    ShowMain
+)
+
+Connect(
+    Close.Activated,
+    function()
+        Cleanup()
+    end
+)
+
+--==============================================================--
+-- TITLE GRADIENT
+--==============================================================--
+
+local TitleGradient =
+    Instance.new(
+        "UIGradient"
+    )
+
+TitleGradient.Color =
+    ColorSequence.new({
+        ColorSequenceKeypoint.new(
+            0,
+            Cyan
+        ),
+
+        ColorSequenceKeypoint.new(
+            0.45,
+            White
+        ),
+
+        ColorSequenceKeypoint.new(
+            1,
+            Purple
+        )
+    })
+
+TitleGradient.Offset =
+    Vector2.new(
+        -1,
+        0
+    )
+
+TitleGradient.Parent =
+    Title
+
+task.spawn(
+    function()
+
+        while Alive
+        and Gui.Parent do
+
+            if EffectsEnabled then
+
+                TitleGradient.Offset =
+                    Vector2.new(
+                        TitleGradient.Offset.X
+                        + 0.006,
+                        0
+                    )
+
+                if TitleGradient.Offset.X
+                    > 1 then
+
+                    TitleGradient.Offset =
+                        Vector2.new(
+                            -1,
+                            0
+                        )
+
+                end
+
+            end
+
+            task.wait(
+                0.06
+            )
+
+        end
+
+    end
+)
+
+--==============================================================--
+-- ANIMATED BORDER
+--==============================================================--
+
+task.spawn(
+    function()
+
+        local hue =
+            0
+
+        while Alive
+        and Gui.Parent do
+
+            if EffectsEnabled then
+
+                hue +=
+                    0.0018
+
+                if hue >= 1 then
+                    hue = 0
+                end
+
+                local c1 =
+                    Color3.fromHSV(
+                        hue,
+                        0.82,
+                        1
+                    )
+
+                local c2 =
+                    Color3.fromHSV(
+                        (
+                            hue
+                            + 0.18
+                        ) % 1,
+                        0.82,
+                        1
+                    )
+
+                MainStroke.Color =
+                    c1
+
+                MenuStroke.Color =
+                    c2
+
+            end
+
+            task.wait(
+                0.07
+            )
+
+        end
+
+    end
+)
+
+--==============================================================--
+-- ONLINE PULSE
+--==============================================================--
+
+task.spawn(
+    function()
+
+        while Alive
+        and Gui.Parent do
+
+            TweenService:Create(
+                Dot,
+                TweenInfo.new(
+                    0.8,
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.InOut
+                ),
+                {
+                    BackgroundTransparency =
+                        0.55
+                }
+            ):Play()
+
+            task.wait(
+                0.8
+            )
+
+            TweenService:Create(
+                Dot,
+                TweenInfo.new(
+                    0.8,
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.InOut
+                ),
+                {
+                    BackgroundTransparency =
+                        0
+                }
+            ):Play()
+
+            task.wait(
+                0.8
+            )
+
+        end
+
+    end
+)
+
+--==============================================================--
+-- FLOATING MENU PULSE
+--==============================================================--
+
+task.spawn(
+    function()
+
+        while Alive
+        and Gui.Parent do
+
+            if MenuButton.Visible
+            and EffectsEnabled then
+
+                TweenService:Create(
+                    MenuButton,
+                    TweenInfo.new(
+                        1.3,
+                        Enum.EasingStyle.Sine,
+                        Enum.EasingDirection.InOut
+                    ),
+                    {
+                        Size =
+                            UDim2.fromOffset(
+                                62,
+                                62
+                            )
+                    }
+                ):Play()
+
+                task.wait(
+                    1.3
+                )
+
+                TweenService:Create(
+                    MenuButton,
+                    TweenInfo.new(
+                        1.3,
+                        Enum.EasingStyle.Sine,
+                        Enum.EasingDirection.InOut
+                    ),
+                    {
+                        Size =
+                            UDim2.fromOffset(
+                                58,
+                                58
+                            )
+                    }
+                ):Play()
+
+                task.wait(
+                    1.3
+
+                )
+
+            else
+
+                task.wait(
+                    0.5
+                )
+
+            end
+
+        end
+
+    end
+)
+
+--==============================================================--
+-- SUBTLE SPARKLES
+--==============================================================--
+
+local SparkleLayer =
+    Instance.new(
+        "Frame"
+    )
+
+SparkleLayer.Size =
+    UDim2.fromScale(
+        1,
+        1
+    )
+
+SparkleLayer.BackgroundTransparency =
+    1
+
+SparkleLayer.BorderSizePixel =
+    0
+
+SparkleLayer.ZIndex =
+    6
+
+SparkleLayer.Parent =
+    Main
+
+local function CreateSparkle()
+
+    if not EffectsEnabled
+    or not Alive then
+        return
+    end
+
+    local Star =
+        Instance.new(
+            "TextLabel"
+        )
+
+    Star.BackgroundTransparency =
+        1
+
+    Star.Text =
+        "★"
+
+    Star.TextColor3 =
+        Cyan
+
+    Star.TextSize =
+        math.random(
+            7,
+            13
+        )
+
+    Star.Font =
+        Enum.Font.GothamBold
+
+    Star.TextTransparency =
+        1
+
+    Star.Position =
+        UDim2.new(
+            math.random(
+                8,
+                92
+            ) / 100,
+            0,
+
+            math.random(
+                12,
+                90
+            ) / 100,
+            0
+        )
+
+    Star.Size =
+        UDim2.fromOffset(
+            18,
+            18
+        )
+
+    Star.Parent =
+        SparkleLayer
 
     TweenService:Create(
-        Main,
+        Star,
         TweenInfo.new(
-            0.22,
-            Enum.EasingStyle.Quint,
-            Enum.EasingDirection.In
+            0.35
         ),
         {
-            Size = UDim2.new(0, 560, 0, 350)
+            TextTransparency =
+                0.15
         }
     ):Play()
 
-    task.delay(0.23, function()
+    task.delay(
+        0.4,
+        function()
 
-        if not IsOpen then
-            Main.Visible = false
-            MenuButton.Visible = true
-        end
-    end)
-end
+            if Star.Parent then
 
-Connect(Minimize.MouseButton1Click, function()
-    CloseMain()
-end)
+                TweenService:Create(
+                    Star,
+                    TweenInfo.new(
+                        0.7
+                    ),
+                    {
+                        TextTransparency =
+                            1
+                    }
+                ):Play()
 
-Connect(MenuButton.MouseButton1Click, function()
-    OpenMain()
-end)
+                task.delay(
+                    0.75,
+                    function()
 
---============================================================--
--- CLOSE SCRIPT
---============================================================--
-
-Connect(Close.MouseButton1Click, function()
-
-    for _, connection in ipairs(Connections) do
-        pcall(function()
-            connection:Disconnect()
-        end)
-    end
-
-    table.clear(Connections)
-
-    pcall(function()
-        ENV.ZYNTRIX_ANIMATION_CLEANUP = nil
-    end)
-
-    if Gui then
-        Gui:Destroy()
-    end
-end)
-
---============================================================--
--- TWO COLOR / MOVING TEXT EFFECT
---============================================================--
-
-task.spawn(function()
-
-    local hue = 0
-    local offset = 0
-
-    while Gui and Gui.Parent do
-
-        if EffectsEnabled then
-
-            hue += 0.003
-
-            if hue >= 1 then
-                hue = 0
-            end
-
-            local c1 =
-                Color3.fromHSV(hue, 0.85, 1)
-
-            local c2 =
-                Color3.fromHSV(
-                    (hue + 0.15) % 1,
-                    0.85,
-                    1
-                )
-
-            CurrentA = c1
-            CurrentB = c2
-
-            for _, item in ipairs(ColorObjects) do
-
-                if item.Object
-                and item.Object.Parent then
-
-                    pcall(function()
-                        item.Object[item.Property] = c1
-                    end)
-                end
-            end
-
-            for _, gradient in ipairs(GradientObjects) do
-
-                if gradient
-                and gradient.Parent then
-
-                    pcall(function()
-
-                        offset += 0.012
-
-                        if offset > 1 then
-                            offset = 0
+                        if Star.Parent then
+                            Star:Destroy()
                         end
 
-                        gradient.Color =
-                            ColorSequence.new({
-                                ColorSequenceKeypoint.new(
-                                    0,
-                                    c1
-                                ),
-                                ColorSequenceKeypoint.new(
-                                    0.5,
-                                    c2
-                                ),
-                                ColorSequenceKeypoint.new(
-                                    1,
-                                    c1
-                                )
-                            })
-
-                        gradient.Offset =
-                            Vector2.new(offset, 0)
-
-                    end)
-                end
-            end
-        end
-
-        task.wait(0.04)
-    end
-end)
-
---============================================================--
--- MOVING SHINE BAR
---============================================================--
-
-task.spawn(function()
-
-    while Gui and Gui.Parent do
-
-        if EffectsEnabled then
-
-            ShineLine.Position =
-                UDim2.new(
-                    0,
-                    68,
-                    1,
-                    -3
+                    end
                 )
 
-            TweenService:Create(
-                ShineLine,
-                TweenInfo.new(
-                    0.8,
-                    Enum.EasingStyle.Sine,
-                    Enum.EasingDirection.InOut
-                ),
-                {
-                    Size =
-                        UDim2.new(
-                            0,
-                            210,
-                            0,
-                            2
-                        )
-                }
-            ):Play()
+            end
 
-            task.wait(0.8)
+        end
+    )
 
-            TweenService:Create(
-                ShineLine,
-                TweenInfo.new(
-                    0.8,
-                    Enum.EasingStyle.Sine,
-                    Enum.EasingDirection.InOut
-                ),
-                {
-                    Size =
-                        UDim2.new(
-                            0,
-                            70,
-                            0,
-                            2
-                        )
-                }
-            ):Play()
+end
+
+task.spawn(
+    function()
+
+        while Alive
+        and Gui.Parent do
+
+            if EffectsEnabled then
+
+                CreateSparkle()
+
+            end
+
+            task.wait(
+                math.random(
+                    12,
+                    22
+                ) / 10
+            )
 
         end
 
-        task.wait(0.8)
     end
-end)
+)
 
---============================================================--
--- FINAL START
---============================================================--
+--==============================================================--
+-- MOBILE SCALE
+--==============================================================--
 
-OpenPage("TRANG CHỦ")
+local function UpdateMobile()
 
-ENV.ZYNTRIX_ANIMATION_CLEANUP = function()
+    local Camera =
+        workspace.CurrentCamera
 
-    for _, connection in ipairs(Connections) do
-        pcall(function()
-            connection:Disconnect()
-        end)
+    if not Camera then
+        return
     end
 
-    table.clear(Connections)
+    local View =
+        Camera.ViewportSize
 
-    if Gui then
-        pcall(function()
-            Gui:Destroy()
-        end)
+    if View.X <= 700 then
+
+        Main.Size =
+            UDim2.new(
+                0.94,
+                0,
+                0,
+                390
+            )
+
+        Main.Position =
+            UDim2.new(
+                0.03,
+                0,
+                0.5,
+                -195
+            )
+
+        Sidebar.Size =
+            UDim2.fromOffset(
+                118,
+                265
+            )
+
+        Content.Position =
+            UDim2.fromOffset(
+                142,
+                118
+            )
+
+        Content.Size =
+            UDim2.new(
+                1,
+                -156,
+                0,
+                265
+            )
+
+    else
+
+        Main.Size =
+            UDim2.fromOffset(
+                650,
+                420
+            )
+
+        Main.Position =
+            UDim2.new(
+                0.5,
+                -325,
+                0.5,
+                -210
+            )
+
+        Sidebar.Size =
+            UDim2.fromOffset(
+                150,
+                285
+            )
+
+        Content.Position =
+            UDim2.fromOffset(
+                178,
+                118
+            )
+
+        Content.Size =
+            UDim2.new(
+                1,
+                -178,
+                0,
+                285
+            )
+
     end
+
 end
 
-print("ZYNTRIX VIP PRIME • ANIMATION HUB LOADED")
+pcall(
+    UpdateMobile
+)
+
+if workspace.CurrentCamera then
+
+    Connect(
+        workspace.CurrentCamera:GetPropertyChangedSignal(
+            "ViewportSize"
+        ),
+        UpdateMobile
+    )
+
+end
+
+--==============================================================--
+-- INITIAL
+--==============================================================--
+
+RenderAnimations(
+    ""
+)
+
+Status.Text =
+    "READY • 32 PACKS • ANIMATION "
+
+--==============================================================--
+-- OPEN ANIMATION
+--==============================================================--
+
+Main.Size =
+    UDim2.fromOffset(
+        590,
+        380
+    )
+
+Main.BackgroundTransparency =
+    1
+
+task.wait(
+    0.05
+)
+
+TweenService:Create(
+    Main,
+    TweenInfo.new(
+        0.48,
+        Enum.EasingStyle.Quint,
+        Enum.EasingDirection.Out
+    ),
+    {
+        Size =
+            UDim2.fromOffset(
+                650,
+                420
+            ),
+
+        BackgroundTransparency =
+            0.12
+    }
+):Play()
+
+print(
+    "[ZYNTRIX PRIME V9] SECRET ANIMATION HUB • 32 PACKS • READY"
+)
