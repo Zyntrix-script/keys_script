@@ -1,20 +1,27 @@
 --==============================================================--
---        FURINA V10 • ANIMATION HUB • 34 PACKS
---        TỐI ƯU HIỆU SUẤT • KHÔNG LAG • HIỆU ỨNG MƯỢT
---        DRAGGABLE • SEARCH • AUTO RESPAWN • MOBILE
+-- ZYNTRIX VIP PRIME • ANIMATION HUB • 34 PACKS
+-- MOBILE • DRAGGABLE • SEARCH • RESPAWN FIX
+-- ANIMATION R6 + LITTLE FRIEND
+-- SLOW EFFECT • NO BLACK SCREEN
 --==============================================================--
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 
 local Player = Players.LocalPlayer
 
 --==============================================================--
--- CONFIG & MÀU SẮC
+-- CONFIG
 --==============================================================--
-local MAIN_NAME = "FURINA_V10"
+
+local UI_IMAGE =
+    "rbxthumb://type=Asset&id=139560886954495&w=420&h=420"
+
+local MENU_IMAGE =
+    "rbxthumb://type=Asset&id=88589651965141&w=420&h=420"
+
+local MAIN_NAME = "ZYNTRIX_ANIMATION_HUB"
 
 local Cyan = Color3.fromRGB(0, 220, 255)
 local Blue = Color3.fromRGB(70, 90, 255)
@@ -23,342 +30,2201 @@ local White = Color3.fromRGB(245, 250, 255)
 local Dark = Color3.fromRGB(7, 8, 18)
 
 local EffectsEnabled = true
-local FPS_MODE = true -- Bật ưu tiên tốc độ, tắt hiệu ứng nặng
 
 --==============================================================--
--- DỌN DẸP TRƯỚC KHI CHẠY
+-- ANTI DUPLICATE
 --==============================================================--
-pcall(function() if getgenv()[MAIN_NAME.."_CLEANUP"] then getgenv()[MAIN_NAME.."_CLEANUP"]() end end)
+
+pcall(function()
+    if getgenv().ZYNTRIX_ANIMATION_CLEANUP then
+        getgenv().ZYNTRIX_ANIMATION_CLEANUP()
+    end
+end)
 
 local Connections = {}
 local Alive = true
 
-local function Connect(signal, cb)
-    local c = signal:Connect(cb)
+local function Connect(signal, callback)
+    local c = signal:Connect(callback)
     table.insert(Connections, c)
     return c
 end
 
 local function Cleanup()
     Alive = false
-    for _,c in ipairs(Connections) do pcall(function() c:Disconnect() end) end
-    Connections = {}
-    for _,parent in {Player.PlayerGui, game:GetService("CoreGui")} do
-        if parent:FindFirstChild(MAIN_NAME) then parent[MAIN_NAME]:Destroy() end
+
+    for _, c in ipairs(Connections) do
+        pcall(function()
+            c:Disconnect()
+        end)
     end
+
+    Connections = {}
+
+    pcall(function()
+        local old = Player.PlayerGui:FindFirstChild(MAIN_NAME)
+        if old then
+            old:Destroy()
+        end
+    end)
+
+    pcall(function()
+        local core = game:GetService("CoreGui")
+        local old = core:FindFirstChild(MAIN_NAME)
+        if old then
+            old:Destroy()
+        end
+    end)
 end
-getgenv()[MAIN_NAME.."_CLEANUP"] = Cleanup
+
+getgenv().ZYNTRIX_ANIMATION_CLEANUP = Cleanup
 
 --==============================================================--
--- DANH SÁCH 34 PACKS (ĐẦY ĐỦ)
+-- ANIMATION DATA • 34 PACKS
 --==============================================================--
+
 local AnimationPacks = {
--- === 2 GÓI BẠN ĐƯA ===
-["Animation R6"] = {
-    Bundle = 63244228017921, Walk = 117695128103872, Run = 110721574762074,
-    Idle1 = 94166452341856, SwimIdle = 77282314957357, Swim = 116006787940544,
-    Climb = 124343044723062, Jump = 124384575411732, Fall = 81200656715197
-},
-["Little Friend"] = {
-    Bundle = 129474238740939, Walk = 115215866197072, Run = 136477087908398,
-    Idle1 = 93560418293467, SwimIdle = 72477216147526, Swim = 131474698474022,
-    Climb = 127288313255692, Jump = 92332859533618, Fall = 109997904107102
-},
 
--- === 32 GÓI CŨ ===
-["Adidas Aura"] = {Walk=83842218823011,Run=118320322718866,Jump=109996626521204,Fall=95603166884636,Climb=97824616490448,Swim=134530128383903,SwimIdle=94922130551805,Idle1=110211186840347,Idle2=114191137265065},
-["Adidas Community"] = {Walk=122150855457006,Run=82598234841035,Jump=75290611992385,Fall=98600215928904,Climb=88763136693023,Swim=133308483266208,SwimIdle=109346520324160,Idle1=122257458498464,Idle2=102357151005774},
-["Adidas Sports"] = {Walk=18537392113,Run=18537384940,Jump=18537380791,Fall=18537367238,Climb=18537363391,Swim=18537389531,SwimIdle=18537387180,Idle1=18537376492,Idle2=18537371272},
-["Astronaut"] = {Walk=10921046031,Run=10921039308,Jump=10921042494,Fall=10921040576,Climb=10921032124,Swim=10921044000,SwimIdle=10921045006,Idle1=10921034824},
-["Bubbly"] = {Walk=910034870,Run=910025107,Jump=910016857,Fall=910001910,Climb=909997997,Swim=910028158,SwimIdle=910030921,Idle1=910004836,Idle2=910009958},
-["Cartoon"] = {Walk=742640026,Run=742638842,Jump=742637942,Fall=742637151,Climb=742636889,Swim=742639220,SwimIdle=742639812,Idle1=742637544,Idle2=742638445},
-["Catwalk Glam"] = {Walk=109168724482748,Run=81024476153754,Jump=116936326516985,Fall=92294537340807,Climb=119377220967554,Swim=134591743181628,SwimIdle=98854111361360,Idle1=133806214992291,Idle2=94970088341563},
-["Elder"] = {Walk=10921111375,Run=10921104374,Jump=10921107367,Fall=10921105765,Climb=10921100400,Swim=10921108971,SwimIdle=10921110146,Idle1=10921101664,Idle2=10921102574},
-["Levitation"] = {Walk=616013216,Run=616010382,Jump=616008936,Fall=616005863,Climb=616003713,Swim=616011509,SwimIdle=616012453,Idle1=616006778,Idle2=616008087},
-["Mage"] = {Walk=10921152678,Run=10921148209,Jump=10921149743,Fall=10921148939,Climb=10921143404,Swim=10921150788,SwimIdle=10921151661,Idle1=10921144709,Idle2=10921145797},
-["Ninja"] = {Walk=10921162768,Run=10921157929,Jump=10921160088,Fall=10921159222,Climb=10921154678,Swim=10921161002,SwimIdle=10922757002,Idle1=10921155160,Idle2=10921155867},
-["Oldschool"] = {Walk=10921244891,Run=10921240218,Jump=10921242013,Fall=10921241244,Climb=10921229866,Swim=10921243048,SwimIdle=10921244018,Idle1=10921230744,Idle2=10921232093},
-["Robot"] = {Walk=10921255446,Run=10921250460,Jump=10921252123,Fall=10921251156,Climb=10921247141,Swim=10921253767,SwimIdle=10921253767,Idle1=10921248039,Idle2=10921248831},
-["Stylish"] = {Walk=10921276116,Run=10921283326,Jump=10921279832,Fall=10921278648,Climb=10921271391,Swim=10921273958,SwimIdle=10921272275,Idle1=10921278648,Idle2=10921279832},
-["Superhero"] = {Walk=10921298616,Run=10921291831,Jump=10921291831,Fall=10921293373,Climb=10921286911,Swim=10921295495,SwimIdle=10921297391,Idle1=10921288909,Idle2=10921290167},
-["Toy"] = {Walk=10921312010,Run=10921306285,Jump=10921308158,Fall=10921307241,Climb=10921300839,Swim=10921309319,SwimIdle=10921310341,Idle1=10921301576,Idle2=10921302207},
-["Vampire"] = {Walk=10921326949,Run=10921320299,Jump=10921322186,Fall=10921321317,Climb=10921314188,Swim=10921324408,SwimIdle=10921325443,Idle1=10921315373,Idle2=10921315373},
-["Werewolf"] = {Walk=10921342074,Run=10921336997,Jump=10921338912,Fall=10921337907,Climb=10921329322,Swim=10921340419,SwimIdle=10921341319,Idle1=10921330408,Idle2=10921333667},
-["Zombie"] = {Walk=10921355261,Run=616163682,Jump=10921351278,Fall=10921350320,Climb=10921343576,Swim=10921352344,SwimIdle=10921353442,Idle1=10921344533,Idle2=10921345304},
-["NFL"] = {Walk=110358958299415,Run=117333533048078,Jump=119846112151352,Fall=129773241321032,Climb=134630013742019,Swim=132697394189921,SwimIdle=79090109939093,Idle1=92080889861410,Idle2=74451233229259},
-["No Boundaries"] = {Walk=18747074203,Run=18747070484,Jump=18747069148,Fall=18747062535,Climb=18747060903,Swim=18747073181,SwimIdle=18747071682,Idle1=18747067405,Idle2=18747063918},
-["Amazon Unboxed"] = {Walk=90478085024465,Run=134824450619865,Jump=121454505477205,Fall=94788218468396,Climb=121145883950231,Swim=105962919001086,SwimIdle=129126268464847,Idle1=98281136301627},
-["Wicked Popular"] = {Walk=92072849924640,Run=72301599441680,Jump=104325245285198,Fall=121152442762481,Climb=131326830509784,Swim=99384245425157,SwimIdle=113199415118199,Idle1=118832222982049,Idle2=76049494037641},
-['Wicked "Dancing Through Life"'] = {Walk=73718308412641,Run=135515454877967,Jump=78508480717326,Fall=78147885297412,Climb=129447497744818,Swim=110657013921774,SwimIdle=129183123083281,Idle1=92849173543269,Idle2=132238900951109},
-["Glitch Animation Pack Roblox"] = {Walk=70532084598346,Run=133291236719695,Jump=87784517289295,Fall=88817521039352,Climb=99974229390885,Swim=70788156947773,SwimIdle=124314548544388,Idle1=118195246541519},
-["Cute Roblox"] = {Walk=140409718187215,Run=118375157537412,Jump=132381016103721,Fall=77496925287217,Climb=86318575131600,Swim=95599821412670,SwimIdle=132170981486619,Idle1=85735421117197,Idle2=136463789054516},
-["Furry Animation Pack Roblox"] = {Walk=104011441852459,Run=87770060317862,Jump=102635582722041,Fall=137079985547592,Climb=76660530164497,Swim=99909547692332,SwimIdle=82429732905677,Idle1=111821292044705,Idle2=90705157329932},
-["Gói hoạt hình cổ tích"] = {Bundle=107350693632269,Walk=104155388409994,Run=85214521829644,Idle1=117086336235203,Idle2=126081566479327,Swim=81730236977194,SwimIdle=129566463958031,Climb=92601441790709,Jump=101319668376661,Fall=78205337706161},
-["Gói hoạt hình kiếm kép"] = {Bundle=122770822556243,Walk=133373623053068,Run=126476138839957,Idle1=81578950337746,Idle2=112871358653281,Swim=87435870674395,SwimIdle=90091920351380,Climb=139966022555892,Jump=121960612860366,Fall=111755954298423},
-["Gói hoạt hình Boss Mini Me"] = {Bundle=76401293400730,Walk=75106887290061,Run=110721243894880,Idle1=108196521384991,Idle2=106594115601501,Swim=112165407090966,SwimIdle=135930711226111,Climb=89290802291547,Jump=122885535842193,Fall=94257318048288},
-["Gói hoạt hình chibi dễ thương"] = {Bundle=52466328299272,Walk=111012968948132,Run=87544781988481,Idle1=97384777119919,Idle2=128055646531003,Swim=97153834582507,SwimIdle=109521754177979,Climb=70774577087790,Jump=85629495208423,Fall=85731989945385},
-["Sự bay lơ lửng thần thiên vô tận"] = {Bundle=249945300329160,Walk=108629385247325,Run=118409763401495,Idle1=91463760153972,Swim=80379634228103,SwimIdle=127353527524703,Climb=107930575903717,Jump=101407222641916,Fall=82924474222458}
+    --==========================================================--
+    -- 01
+    --==========================================================--
+
+    ["Adidas Aura"] = {
+        Walk=83842218823011,
+        Run=118320322718866,
+        Jump=109996626521204,
+        Fall=95603166884636,
+        Climb=97824616490448,
+        Swim=134530128383903,
+        SwimIdle=94922130551805,
+        Idle1=110211186840347,
+        Idle2=114191137265065
+    },
+
+    --==========================================================--
+    -- 02
+    --==========================================================--
+
+    ["Adidas Community"] = {
+        Walk=122150855457006,
+        Run=82598234841035,
+        Jump=75290611992385,
+        Fall=98600215928904,
+        Climb=88763136693023,
+        Swim=133308483266208,
+        SwimIdle=109346520324160,
+        Idle1=122257458498464,
+        Idle2=102357151005774
+    },
+
+    --==========================================================--
+    -- 03
+    --==========================================================--
+
+    ["Adidas Sports"] = {
+        Walk=18537392113,
+        Run=18537384940,
+        Jump=18537380791,
+        Fall=18537367238,
+        Climb=18537363391,
+        Swim=18537389531,
+        SwimIdle=18537387180,
+        Idle1=18537376492,
+        Idle2=18537371272
+    },
+
+    --==========================================================--
+    -- 04
+    --==========================================================--
+
+    ["Astronaut"] = {
+        Walk=10921046031,
+        Run=10921039308,
+        Jump=10921042494,
+        Fall=10921040576,
+        Climb=10921032124,
+        Swim=10921044000,
+        SwimIdle=10921045006,
+        Idle1=10921034824
+    },
+
+    --==========================================================--
+    -- 05
+    --==========================================================--
+
+    ["Bubbly"] = {
+        Walk=910034870,
+        Run=910025107,
+        Jump=910016857,
+        Fall=910001910,
+        Climb=909997997,
+        Swim=910028158,
+        SwimIdle=910030921,
+        Idle1=910004836,
+        Idle2=910009958
+    },
+
+    --==========================================================--
+    -- 06
+    --==========================================================--
+
+    ["Cartoon"] = {
+        Walk=742640026,
+        Run=742638842,
+        Jump=742637942,
+        Fall=742637151,
+        Climb=742636889,
+        Swim=742639220,
+        SwimIdle=742639812,
+        Idle1=742637544,
+        Idle2=742638445
+    },
+
+    --==========================================================--
+    -- 07
+    --==========================================================--
+
+    ["Catwalk Glam"] = {
+        Walk=109168724482748,
+        Run=81024476153754,
+        Jump=116936326516985,
+        Fall=92294537340807,
+        Climb=119377220967554,
+        Swim=134591743181628,
+        SwimIdle=98854111361360,
+        Idle1=133806214992291,
+        Idle2=94970088341563
+    },
+
+    --==========================================================--
+    -- 08
+    --==========================================================--
+
+    ["Elder"] = {
+        Walk=10921111375,
+        Run=10921104374,
+        Jump=10921107367,
+        Fall=10921105765,
+        Climb=10921100400,
+        Swim=10921108971,
+        SwimIdle=10921110146,
+        Idle1=10921101664,
+        Idle2=10921102574
+    },
+
+    --==========================================================--
+    -- 09
+    --==========================================================--
+
+    ["Levitation"] = {
+        Walk=616013216,
+        Run=616010382,
+        Jump=616008936,
+        Fall=616005863,
+        Climb=616003713,
+        Swim=616011509,
+        SwimIdle=616012453,
+        Idle1=616006778,
+        Idle2=616008087
+    },
+
+    --==========================================================--
+    -- 10
+    --==========================================================--
+
+    ["Mage"] = {
+        Walk=10921152678,
+        Run=10921148209,
+        Jump=10921149743,
+        Fall=10921148939,
+        Climb=10921143404,
+        Swim=10921150788,
+        SwimIdle=10921151661,
+        Idle1=10921144709,
+        Idle2=10921145797
+    },
+
+    --==========================================================--
+    -- 11
+    --==========================================================--
+
+    ["Ninja"] = {
+        Walk=10921162768,
+        Run=10921157929,
+        Jump=10921160088,
+        Fall=10921159222,
+        Climb=10921154678,
+        Swim=10921161002,
+        SwimIdle=10922757002,
+        Idle1=10921155160,
+        Idle2=10921155867
+    },
+
+    --==========================================================--
+    -- 12
+    --==========================================================--
+
+    ["Oldschool"] = {
+        Walk=10921244891,
+        Run=10921240218,
+        Jump=10921242013,
+        Fall=10921241244,
+        Climb=10921229866,
+        Swim=10921243048,
+        SwimIdle=10921244018,
+        Idle1=10921230744,
+        Idle2=10921232093
+    },
+
+    --==========================================================--
+    -- 13
+    --==========================================================--
+
+    ["Robot"] = {
+        Walk=10921255446,
+        Run=10921250460,
+        Jump=10921252123,
+        Fall=10921251156,
+        Climb=10921247141,
+        Swim=10921253767,
+        SwimIdle=10921253767,
+        Idle1=10921248039,
+        Idle2=10921248831
+    },
+
+    --==========================================================--
+    -- 14
+    --==========================================================--
+
+    ["Stylish"] = {
+        Walk=10921276116,
+        Run=10921283326,
+        Jump=10921279832,
+        Fall=10921278648,
+        Climb=10921271391,
+        Swim=10921273958,
+        SwimIdle=10921272275,
+        Idle1=10921278648,
+        Idle2=10921279832
+    },
+
+    --==========================================================--
+    -- 15
+    --==========================================================--
+
+    ["Superhero"] = {
+        Walk=10921298616,
+        Run=10921291831,
+        Jump=10921291831,
+        Fall=10921293373,
+        Climb=10921286911,
+        Swim=10921295495,
+        SwimIdle=10921297391,
+        Idle1=10921288909,
+        Idle2=10921290167
+    },
+
+    --==========================================================--
+    -- 16
+    --==========================================================--
+
+    ["Toy"] = {
+        Walk=10921312010,
+        Run=10921306285,
+        Jump=10921308158,
+        Fall=10921307241,
+        Climb=10921300839,
+        Swim=10921309319,
+        SwimIdle=10921310341,
+        Idle1=10921301576,
+        Idle2=10921302207
+    },
+
+    --==========================================================--
+    -- 17
+    --==========================================================--
+
+    ["Vampire"] = {
+        Walk=10921326949,
+        Run=10921320299,
+        Jump=10921322186,
+        Fall=10921321317,
+        Climb=10921314188,
+        Swim=10921324408,
+        SwimIdle=10921325443,
+        Idle1=10921315373,
+        Idle2=10921315373
+    },
+
+    --==========================================================--
+    -- 18
+    --==========================================================--
+
+    ["Werewolf"] = {
+        Walk=10921342074,
+        Run=10921336997,
+        Jump=10921338912,
+        Fall=10921337907,
+        Climb=10921329322,
+        Swim=10921340419,
+        SwimIdle=10921341319,
+        Idle1=10921330408,
+        Idle2=10921333667
+    },
+
+    --==========================================================--
+    -- 19
+    --==========================================================--
+
+    ["Zombie"] = {
+        Walk=10921355261,
+        Run=616163682,
+        Jump=10921351278,
+        Fall=10921350320,
+        Climb=10921343576,
+        Swim=10921352344,
+        SwimIdle=10921353442,
+        Idle1=10921344533,
+        Idle2=10921345304
+    },
+
+    --==========================================================--
+    -- 20
+    --==========================================================--
+
+    ["NFL"] = {
+        Walk=110358958299415,
+        Run=117333533048078,
+        Jump=119846112151352,
+        Fall=129773241321032,
+        Climb=134630013742019,
+        Swim=132697394189921,
+        SwimIdle=79090109939093,
+        Idle1=92080889861410,
+        Idle2=74451233229259
+    },
+
+    --==========================================================--
+    -- 21
+    --==========================================================--
+
+    ["No Boundaries"] = {
+        Walk=18747074203,
+        Run=18747070484,
+        Jump=18747069148,
+        Fall=18747062535,
+        Climb=18747060903,
+        Swim=18747073181,
+        SwimIdle=18747071682,
+        Idle1=18747067405,
+        Idle2=18747063918
+    },
+
+    --==========================================================--
+    -- 22
+    --==========================================================--
+
+    ["Amazon Unboxed"] = {
+        Walk=90478085024465,
+        Run=134824450619865,
+        Jump=121454505477205,
+        Fall=94788218468396,
+        Climb=121145883950231,
+        Swim=105962919001086,
+        SwimIdle=129126268464847,
+        Idle1=98281136301627
+    },
+
+    --==========================================================--
+    -- 23
+    --==========================================================--
+
+    ["Wicked Popular"] = {
+        Walk=92072849924640,
+        Run=72301599441680,
+        Jump=104325245285198,
+        Fall=121152442762481,
+        Climb=131326830509784,
+        Swim=99384245425157,
+        SwimIdle=113199415118199,
+        Idle1=118832222982049,
+        Idle2=76049494037641
+    },
+
+    --==========================================================--
+    -- 24
+    --==========================================================--
+
+    ['Wicked "Dancing Through Life"'] = {
+        Walk=73718308412641,
+        Run=135515454877967,
+        Jump=78508480717326,
+        Fall=78147885297412,
+        Climb=129447497744818,
+        Swim=110657013921774,
+        SwimIdle=129183123083281,
+        Idle1=92849173543269,
+        Idle2=132238900951109
+    },
+
+    --==========================================================--
+    -- 25
+    --==========================================================--
+
+    ["Glitch Animation Pack Roblox"] = {
+        Walk=70532084598346,
+        Run=133291236719695,
+        Jump=87784517289295,
+        Fall=88817521039352,
+        Climb=99974229390885,
+        Swim=70788156947773,
+        SwimIdle=124314548544388,
+        Idle1=118195246541519
+    },
+
+    --==========================================================--
+    -- 26
+    --==========================================================--
+
+    ["Cute Roblox"] = {
+        Walk=140409718187215,
+        Run=118375157537412,
+        Jump=132381016103721,
+        Fall=77496925287217,
+        Climb=86318575131600,
+        Swim=95599821412670,
+        SwimIdle=132170981486619,
+        Idle1=85735421117197,
+        Idle2=136463789054516
+    },
+
+    --==========================================================--
+    -- 27
+    --==========================================================--
+
+    ["Furry Animation Pack Roblox"] = {
+        Walk=104011441852459,
+        Run=87770060317862,
+        Jump=102635582722041,
+        Fall=137079985547592,
+        Climb=76660530164497,
+        Swim=99909547692332,
+        SwimIdle=82429732905677,
+        Idle1=111821292044705,
+        Idle2=90705157329932
+    },
+
+    --==========================================================--
+    -- 28
+    --==========================================================--
+
+    ["Gói hoạt hình cổ tích"] = {
+        Bundle=107350693632269,
+        Walk=104155388409994,
+        Run=85214521829644,
+        Idle1=117086336235203,
+        Idle2=126081566479327,
+        Swim=81730236977194,
+        SwimIdle=129566463958031,
+        Climb=92601441790709,
+        Jump=101319668376661,
+        Fall=78205337706161
+    },
+
+    --==========================================================--
+    -- 29
+    --==========================================================--
+
+    ["Gói hoạt hình kiếm kép"] = {
+        Bundle=122770822556243,
+        Walk=133373623053068,
+        Run=126476138839957,
+        Idle1=81578950337746,
+        Idle2=112871358653281,
+        Swim=87435870674395,
+        SwimIdle=90091920351380,
+        Climb=139966022555892,
+        Jump=121960612860366,
+        Fall=111755954298423
+    },
+
+    --==========================================================--
+    -- 30
+    --==========================================================--
+
+    ["Gói hoạt hình Boss Mini Me"] = {
+        Bundle=76401293400730,
+        Walk=75106887290061,
+        Run=110721243894880,
+        Idle1=108196521384991,
+        Idle2=106594115601501,
+        Swim=112165407090966,
+        SwimIdle=135930711226111,
+        Climb=89290802291547,
+        Jump=122885535842193,
+        Fall=94257318048288
+    },
+
+    --==========================================================--
+    -- 31
+    --==========================================================--
+
+    ["Gói hoạt hình chibi dễ thương"] = {
+        Bundle=52466328299272,
+        Walk=111012968948132,
+        Run=87544781988481,
+        Idle1=97384777119919,
+        Idle2=128055646531003,
+        Swim=97153834582507,
+        SwimIdle=109521754177979,
+        Climb=70774577087790,
+        Jump=85629495208423,
+        Fall=85731989945385
+    },
+
+    --==========================================================--
+    -- 32
+    --==========================================================--
+
+    ["Sự bay lơ lửng thần thiên vô tận"] = {
+        Bundle=249945300329160,
+        Walk=108629385247325,
+        Run=118409763401495,
+        Idle1=91463760153972,
+        Swim=80379634228103,
+        SwimIdle=127353527524703,
+        Climb=107930575903717,
+        Jump=101407222641916,
+        Fall=82924474222458
+    },
+
+    --==========================================================--
+    -- 33 • ANIMATION R6
+    --==========================================================--
+
+    ["Animation R6"] = {
+        Bundle=63244228017921,
+        Walk=117695128103872,
+        Run=110721574762074,
+        Idle1=94166452341856,
+        SwimIdle=77282314957357,
+        Swim=116006787940544,
+        Climb=124343044723062,
+        Jump=124384575411732,
+        Fall=81200656715197
+    },
+
+    --==========================================================--
+    -- 34 • LITTLE FRIEND
+    --==========================================================--
+
+    ["Little Friend"] = {
+        Bundle=129474238740939,
+        Walk=115215866197072,
+        Run=136477087908398,
+        Idle1=93560418293467,
+        SwimIdle=72477216147526,
+        Swim=131474698474022,
+        Climb=127288313255692,
+        Jump=92332859533618,
+        Fall=109997904107102
+    }
 }
 
 --==============================================================--
--- HÀM HỖ TRỢ
+-- GUI
 --==============================================================--
-local function MakeGui(class, props, parent)
-    local obj = Instance.new(class)
-    for k,v in pairs(props or {}) do obj[k] = v end
-    if parent then obj.Parent = parent end
-    return obj
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name = MAIN_NAME
+Gui.ResetOnSpawn = false
+Gui.IgnoreGuiInset = true
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+pcall(function()
+    Gui.Parent = game:GetService("CoreGui")
+end)
+
+if not Gui.Parent then
+    Gui.Parent = Player:WaitForChild("PlayerGui")
 end
 
-local function Corner(p, r) MakeGui("UICorner", {CornerRadius=UDim.new(0,r or 12)}, p) end
-local function Stroke(p, c, t, tr) MakeGui("UIStroke", {Color=c or Cyan, Thickness=t or 1, Transparency=tr or 0}, p) end
+--==============================================================--
+-- HELPERS
+--==============================================================--
+
+local function Corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 12)
+    c.Parent = parent
+    return c
+end
+
+local function Stroke(parent, color, thickness, transparency)
+    local s = Instance.new("UIStroke")
+    s.Color = color or Cyan
+    s.Thickness = thickness or 1
+    s.Transparency = transparency or 0
+    s.Parent = parent
+    return s
+end
+
+local function MakeText(parent, text, size, bold)
+    local t = Instance.new("TextLabel")
+    t.BackgroundTransparency = 1
+    t.Text = text
+    t.TextColor3 = White
+    t.TextSize = size or 14
+    t.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
+    t.TextXAlignment = Enum.TextXAlignment.Left
+    t.Parent = parent
+    return t
+end
+
+local function MakeButton(parent, text)
+    local b = Instance.new("TextButton")
+    b.AutoButtonColor = false
+    b.Text = text
+    b.TextColor3 = White
+    b.TextSize = 13
+    b.Font = Enum.Font.GothamBold
+    b.BackgroundColor3 = Color3.fromRGB(12, 15, 30)
+    b.BackgroundTransparency = 0.15
+    b.BorderSizePixel = 0
+    b.Parent = parent
+
+    Corner(b, 10)
+    Stroke(
+        b,
+        Color3.fromRGB(40, 100, 150),
+        1,
+        0.25
+    )
+
+    return b
+end
 
 --==============================================================--
--- TẠO GIAO DIỆN
+-- MAIN
 --==============================================================--
-local Gui = MakeGui("ScreenGui", {Name=MAIN_NAME, ResetOnSpawn=false, IgnoreGuiInset=true, ZIndexBehavior=Enum.ZIndexBehavior.Sibling})
-pcall(function() Gui.Parent = game:GetService("CoreGui") end)
-if not Gui.Parent then Gui.Parent = Player:WaitForChild("PlayerGui") end
 
-local Main = MakeGui("Frame", {
-    Name="Main", Size=UDim2.fromOffset(620, 370), Position=UDim2.new(0.5,-310,0.5,-185),
-    BackgroundColor3=Dark, BackgroundTransparency=0.2, BorderSizePixel=0, Parent=Gui
-})
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 620, 0, 370)
+Main.Position = UDim2.new(0.5, -310, 0.5, -185)
+Main.BackgroundColor3 = Dark
+Main.BackgroundTransparency = 0.20
+Main.BorderSizePixel = 0
+Main.Parent = Gui
+
 Corner(Main, 18)
-local MainStroke = Stroke(Main, Cyan, 1.5, 0.15)
 
--- Top Bar
-local Top = MakeGui("Frame", {Size=UDim2.new(1,0,0,58), BackgroundTransparency=1, Parent=Main})
-local Title = MakeGui("TextLabel", {
-    Text="FURINA V10 • 34 PACKS ✨", TextColor3=White, TextSize=16,
-    Font=Enum.Font.GothamBold, TextXAlignment=Enum.TextXAlignment.Left,
-    Position=UDim2.new(0,14,0,7), Size=UDim2.new(1,-150,0,24), BackgroundTransparency=1, Parent=Top
-})
-local Subtitle = MakeGui("TextLabel", {
-    Text="KHÔNG LAG • HIỆU ỨNG MƯỢT • AUTO RESPAWN", TextColor3=Color3.fromRGB(150,180,205),
-    TextSize=10, Font=Enum.Font.Gotham, TextXAlignment=Enum.TextXAlignment.Left,
-    Position=UDim2.new(0,14,0,31), Size=UDim2.new(1,-150,0,18), BackgroundTransparency=1, Parent=Top
-})
+local MainStroke =
+    Stroke(Main, Cyan, 1.5, 0.15)
 
--- Nút đóng/thu nhỏ
-local Minimize = MakeGui("TextButton", {
-    Text="−", TextSize=20, Font=Enum.Font.GothamBold, TextColor3=White,
-    BackgroundColor3=Color3.fromRGB(20,25,45), BackgroundTransparency=0.15, BorderSizePixel=0,
-    Size=UDim2.fromOffset(34,30), Position=UDim2.new(1,-76,0,14), AutoButtonColor=false, Parent=Top
-})
+--==============================================================--
+-- TOP BAR
+--==============================================================--
+
+local Top = Instance.new("Frame")
+Top.Size = UDim2.new(1, 0, 0, 58)
+Top.BackgroundTransparency = 1
+Top.Parent = Main
+
+local Image = Instance.new("ImageLabel")
+Image.Size = UDim2.new(0, 42, 0, 42)
+Image.Position = UDim2.new(0, 12, 0, 8)
+Image.BackgroundTransparency = 1
+Image.Image = UI_IMAGE
+Image.Parent = Top
+
+Corner(Image, 12)
+Stroke(Image, Cyan, 1, 0.25)
+
+local Title = MakeText(
+    Top,
+    "ZYNTRIX VIP PRIME • ANIMATION HUB ",
+    16,
+    true
+)
+
+Title.Position =
+    UDim2.new(0, 64, 0, 7)
+
+Title.Size =
+    UDim2.new(1, -150, 0, 24)
+
+local Subtitle = MakeText(
+    Top,
+    "34 PACKS • MOBILE • RESPAWN FIX ",
+    10,
+    false
+)
+
+Subtitle.TextColor3 =
+    Color3.fromRGB(150, 180, 205)
+
+Subtitle.Position =
+    UDim2.new(0, 65, 0, 31)
+
+Subtitle.Size =
+    UDim2.new(1, -150, 0, 18)
+
+--==============================================================--
+-- TOP BUTTONS
+--==============================================================--
+
+local Minimize = Instance.new("TextButton")
+Minimize.Size =
+    UDim2.new(0, 34, 0, 30)
+
+Minimize.Position =
+    UDim2.new(1, -76, 0, 14)
+
+Minimize.Text = "−"
+Minimize.TextSize = 20
+Minimize.Font = Enum.Font.GothamBold
+Minimize.TextColor3 = White
+Minimize.BackgroundColor3 =
+    Color3.fromRGB(20, 25, 45)
+
+Minimize.BackgroundTransparency = 0.15
+Minimize.BorderSizePixel = 0
+Minimize.Parent = Top
+
 Corner(Minimize, 9)
 
-local Close = MakeGui("TextButton", {
-    Text="×", TextSize=20, Font=Enum.Font.GothamBold, TextColor3=White,
-    BackgroundColor3=Color3.fromRGB(20,25,45), BackgroundTransparency=0.15, BorderSizePixel=0,
-    Size=UDim2.fromOffset(34,30), Position=UDim2.new(1,-38,0,14), AutoButtonColor=false, Parent=Top
-})
+local Close = Instance.new("TextButton")
+Close.Size =
+    UDim2.new(0, 34, 0, 30)
+
+Close.Position =
+    UDim2.new(1, -38, 0, 14)
+
+Close.Text = "×"
+Close.TextSize = 20
+Close.Font = Enum.Font.GothamBold
+Close.TextColor3 = White
+Close.BackgroundColor3 =
+    Color3.fromRGB(20, 25, 45)
+
+Close.BackgroundTransparency = 0.15
+Close.BorderSizePixel = 0
+Close.Parent = Top
+
 Corner(Close, 9)
 
--- Tìm kiếm
-local Search = MakeGui("TextBox", {
-    PlaceholderText="Tìm animation pack...", Text="", ClearTextOnFocus=false,
-    TextColor3=White, PlaceholderColor3=Color3.fromRGB(120,135,155), TextSize=12,
-    Font=Enum.Font.Gotham, BackgroundColor3=Color3.fromRGB(10,13,26), BackgroundTransparency=0.12,
-    BorderSizePixel=0, Size=UDim2.fromOffset(245,34), Position=UDim2.new(0,14,0,65), Parent=Main
-})
-Corner(Search, 10); Stroke(Search, Color3.fromRGB(40,110,160), 1, 0.3)
+--==============================================================--
+-- SEARCH
+--==============================================================--
 
--- Thanh bên
-local Sidebar = MakeGui("ScrollingFrame", {
-    Size=UDim2.fromOffset(135,245), Position=UDim2.new(0,14,0,108),
-    BackgroundColor3=Color3.fromRGB(9,11,23), BackgroundTransparency=0.12, BorderSizePixel=0,
-    ScrollBarThickness=2, CanvasSize=UDim2.new(), Parent=Main
-})
-Corner(Sidebar, 12); Stroke(Sidebar, Purple, 1, 0.4)
-local SidebarLayout = MakeGui("UIListLayout", {Padding=UDim.new(0,6), HorizontalAlignment=Enum.HorizontalAlignment.Center, Parent=Sidebar})
-MakeGui("UIPadding", {PaddingTop=UDim.new(0,8), PaddingBottom=UDim.new(0,8), Parent=Sidebar})
+local Search = Instance.new("TextBox")
+Search.Size =
+    UDim2.new(0, 245, 0, 34)
 
--- Nội dung chính
-local Content = MakeGui("ScrollingFrame", {
-    Size=UDim2.fromOffset(441,245), Position=UDim2.new(0,163,0,108),
-    BackgroundColor3=Color3.fromRGB(8,10,21), BackgroundTransparency=0.08, BorderSizePixel=0,
-    ScrollBarThickness=3, CanvasSize=UDim2.new(), Parent=Main
-})
-Corner(Content, 12); Stroke(Content, Cyan, 1, 0.35)
-local ContentLayout = MakeGui("UIListLayout", {Padding=UDim.new(0,7), Parent=Content})
-MakeGui("UIPadding", {PaddingTop=UDim.new(0,8), PaddingBottom=UDim.new(0,8), PaddingLeft=UDim.new(0,8), PaddingRight=UDim.new(0,8), Parent=Content})
+Search.Position =
+    UDim2.new(0, 14, 0, 65)
 
--- Trạng thái
-local Status = MakeGui("TextLabel", {
-    Text="SẴN SÀNG • CHỌN PACK ĐỂ ÁP DỤNG", TextColor3=Color3.fromRGB(110,235,255),
-    TextSize=10, Font=Enum.Font.GothamBold, Position=UDim2.new(0,164,0,78),
-    Size=UDim2.fromOffset(430,22), BackgroundTransparency=1, Parent=Main
-})
+Search.PlaceholderText =
+    "Tìm animation pack... "
 
--- Nút thu nhỏ
-local MenuButton = MakeGui("ImageButton", {
-    Size=UDim2.fromOffset(55,55), Position=UDim2.new(0,18,0.5,-28),
-    BackgroundColor3=Color3.fromRGB(8,10,22), BackgroundTransparency=0.08, BorderSizePixel=0,
-    Visible=false, Parent=Gui
-})
-Corner(MenuButton, 15); Stroke(MenuButton, Cyan, 1.5, 0.15)
+Search.Text = ""
+Search.ClearTextOnFocus = false
+Search.TextColor3 = White
+Search.PlaceholderColor3 =
+    Color3.fromRGB(120, 135, 155)
 
--- Kéo di chuyển
-local function MakeDraggable(obj, handle)
-    local drag, startPos, startOffset
-    Connect(handle.InputBegan, function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-            drag = true; startPos = i.Position; startOffset = obj.Position
+Search.TextSize = 12
+Search.Font = Enum.Font.Gotham
+
+Search.BackgroundColor3 =
+    Color3.fromRGB(10, 13, 26)
+
+Search.BackgroundTransparency = 0.12
+Search.BorderSizePixel = 0
+Search.Parent = Main
+
+Corner(Search, 10)
+
+Stroke(
+    Search,
+    Color3.fromRGB(40, 110, 160),
+    1,
+    0.3
+)
+
+--==============================================================--
+-- SIDEBAR
+--==============================================================--
+
+local Sidebar = Instance.new("ScrollingFrame")
+
+Sidebar.Size =
+    UDim2.new(0, 135, 0, 245)
+
+Sidebar.Position =
+    UDim2.new(0, 14, 0, 108)
+
+Sidebar.BackgroundColor3 =
+    Color3.fromRGB(9, 11, 23)
+
+Sidebar.BackgroundTransparency = 0.12
+Sidebar.BorderSizePixel = 0
+Sidebar.ScrollBarThickness = 2
+Sidebar.CanvasSize = UDim2.new()
+Sidebar.Parent = Main
+
+Corner(Sidebar, 12)
+
+Stroke(
+    Sidebar,
+    Purple,
+    1,
+    0.4
+)
+
+local SidebarLayout =
+    Instance.new("UIListLayout")
+
+SidebarLayout.Padding =
+    UDim.new(0, 6)
+
+SidebarLayout.HorizontalAlignment =
+    Enum.HorizontalAlignment.Center
+
+SidebarLayout.Parent = Sidebar
+
+local SidebarPadding =
+    Instance.new("UIPadding")
+
+SidebarPadding.PaddingTop =
+    UDim.new(0, 8)
+
+SidebarPadding.PaddingBottom =
+    UDim.new(0, 8)
+
+SidebarPadding.Parent = Sidebar
+
+--==============================================================--
+-- CONTENT
+--==============================================================--
+
+local Content = Instance.new("ScrollingFrame")
+
+Content.Size =
+    UDim2.new(0, 441, 0, 245)
+
+Content.Position =
+    UDim2.new(0, 163, 0, 108)
+
+Content.BackgroundColor3 =
+    Color3.fromRGB(8, 10, 21)
+
+Content.BackgroundTransparency = 0.08
+Content.BorderSizePixel = 0
+Content.ScrollBarThickness = 3
+Content.CanvasSize = UDim2.new()
+Content.Parent = Main
+
+Corner(Content, 12)
+
+Stroke(
+    Content,
+    Cyan,
+    1,
+    0.35
+)
+
+local ContentLayout =
+    Instance.new("UIListLayout")
+
+ContentLayout.Padding =
+    UDim.new(0, 7)
+
+ContentLayout.Parent = Content
+
+local ContentPadding =
+    Instance.new("UIPadding")
+
+ContentPadding.PaddingTop =
+    UDim.new(0, 8)
+
+ContentPadding.PaddingBottom =
+    UDim.new(0, 8)
+
+ContentPadding.PaddingLeft =
+    UDim.new(0, 8)
+
+ContentPadding.PaddingRight =
+    UDim.new(0, 8)
+
+ContentPadding.Parent = Content
+
+--==============================================================--
+-- STATUS
+--==============================================================--
+
+local Status = MakeText(
+    Main,
+    "READY • CHỌN PACK ĐỂ ÁP DỤNG ",
+    10,
+    true
+)
+
+Status.Position =
+    UDim2.new(0, 164, 0, 78)
+
+Status.Size =
+    UDim2.new(0, 430, 0, 22)
+
+Status.TextColor3 =
+    Color3.fromRGB(110, 235, 255)
+
+--==============================================================--
+-- MENU BUTTON
+--==============================================================--
+
+local MenuButton =
+    Instance.new("ImageButton")
+
+MenuButton.Name = "MenuButton"
+
+MenuButton.Size =
+    UDim2.new(0, 55, 0, 55)
+
+MenuButton.Position =
+    UDim2.new(0, 18, 0.5, -28)
+
+MenuButton.BackgroundColor3 =
+    Color3.fromRGB(8, 10, 22)
+
+MenuButton.BackgroundTransparency = 0.08
+MenuButton.BorderSizePixel = 0
+MenuButton.Image = MENU_IMAGE
+MenuButton.Visible = false
+MenuButton.Parent = Gui
+
+Corner(MenuButton, 15)
+
+Stroke(
+    MenuButton,
+    Cyan,
+    1.5,
+    0.15
+)
+
+--==============================================================--
+-- DRAG SYSTEM
+--==============================================================--
+
+local function MakeDraggable(object, handle)
+
+    local dragging = false
+    local dragStart
+    local startPos
+
+    Connect(
+        handle.InputBegan,
+        function(input)
+
+            if input.UserInputType ==
+                Enum.UserInputType.MouseButton1
+            or input.UserInputType ==
+                Enum.UserInputType.Touch then
+
+                dragging = true
+                dragStart = input.Position
+                startPos = object.Position
+
+                local connection
+
+                connection =
+                    input.Changed:Connect(
+                    function()
+
+                        if input.UserInputState ==
+                            Enum.UserInputState.End then
+
+                            dragging = false
+
+                            if connection then
+                                connection:Disconnect()
+                            end
+
+                        end
+
+                    end
+                )
+
+            end
+
         end
-    end)
-    Connect(UserInputService.InputChanged, function(i)
-        if not drag then return end
-        if i.UserInputType ~= Enum.UserInputType.MouseMovement and i.UserInputType ~= Enum.UserInputType.Touch then return end
-        local d = i.Position - startPos
-        obj.Position = UDim2.new(startOffset.X.Scale, startOffset.X.Offset + d.X, startOffset.Y.Scale, startOffset.Y.Offset + d.Y)
-    end)
-    Connect(handle.InputEnded, function() drag = false end)
+    )
+
+    Connect(
+        UserInputService.InputChanged,
+        function(input)
+
+            if not dragging then
+                return
+            end
+
+            if input.UserInputType ~=
+                Enum.UserInputType.MouseMovement
+            and input.UserInputType ~=
+                Enum.UserInputType.Touch then
+                return
+            end
+
+            local delta =
+                input.Position - dragStart
+
+            object.Position =
+                UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+
+        end
+    )
+
 end
+
 MakeDraggable(Main, Top)
 MakeDraggable(MenuButton, MenuButton)
 
 --==============================================================--
--- ÁP DỤNG ANIMATION
+-- ANIMATION APPLY SYSTEM
 --==============================================================--
-local CurrentPack, ApplyToken = nil, 0
 
-local function GetAnimate()
-    local c = Player.Character; if not c then return nil end
-    local a = c:FindFirstChild("Animate") or c:WaitForChild("Animate", 3)
-    return a
+local CurrentPackName = nil
+local ApplyToken = 0
+
+local function GetCharacter()
+    return Player.Character
 end
 
-local function SetAnim(parent, name, id)
-    if not id then return end
-    local anim = parent:FindFirstChild(name) or MakeGui("Animation", {Name=name}, parent)
-    pcall(function() anim.AnimationId = "rbxassetid://"..tostring(id) end)
+local function GetAnimate()
+
+    local Character =
+        GetCharacter()
+
+    if not Character then
+        return nil
+    end
+
+    local Animate =
+        Character:FindFirstChild("Animate")
+
+    if not Animate then
+
+        Animate =
+            Character:WaitForChild(
+                "Animate",
+                5
+            )
+
+    end
+
+    return Animate
+end
+
+local function EnsureAnimation(parent, name)
+
+    local object =
+        parent:FindFirstChild(name)
+
+    if not object then
+
+        object =
+            Instance.new("Animation")
+
+        object.Name = name
+        object.Parent = parent
+
+    end
+
+    return object
+end
+
+local function SetAnimation(parent, name, id)
+
+    if not id then
+        return
+    end
+
+    local animation =
+        EnsureAnimation(
+            parent,
+            name
+        )
+
+    pcall(function()
+
+        animation.AnimationId =
+            "rbxassetid://" ..
+            tostring(id)
+
+    end)
+
 end
 
 local function ApplyPack(packName)
-    local pack = AnimationPacks[packName]; if not pack then return end
-    CurrentPack = packName; ApplyToken += 1
-    Status.Text = "ĐANG ÁP DỤNG: "..packName
+
+    local pack =
+        AnimationPacks[packName]
+
+    if not pack then
+        return
+    end
+
+    CurrentPackName =
+        packName
+
+    ApplyToken += 1
+
+    local myToken =
+        ApplyToken
+
+    Status.Text =
+        "ĐANG ÁP DỤNG: " ..
+        packName ..
+        " "
+
     task.spawn(function()
-        for _,delay in ipairs({0, 0.15, 0.35, 0.7, 1.2, 2}) do
-            if ApplyToken ~= ApplyToken or not Alive then return end
-            if delay > 0 then task.wait(delay) end
-            local a = GetAnimate(); if not a then continue end
-            pcall(function()
-                if a:FindFirstChild("walk") then SetAnim(a.walk, "WalkAnim", pack.Walk) end
-                if a:FindFirstChild("run") then SetAnim(a.run, "RunAnim", pack.Run) end
-                if a:FindFirstChild("jump") then SetAnim(a.jump, "JumpAnim", pack.Jump) end
-                if a:FindFirstChild("fall") then SetAnim(a.fall, "FallAnim", pack.Fall) end
-                if a:FindFirstChild("climb") then SetAnim(a.climb, "ClimbAnim", pack.Climb) end
-                if a:FindFirstChild("swim") then SetAnim(a.swim, "Swim", pack.Swim) end
-                if a:FindFirstChild("swimidle") then SetAnim(a.swimidle, "SwimIdle", pack.SwimIdle or pack.SwimIdle) end
-                if a:FindFirstChild("idle") then
-                    SetAnim(a.idle, "Animation1", pack.Idle1 or pack.Idle)
-                    SetAnim(a.idle, "Animation2", pack.Idle2)
+
+        local retryTimes = {
+            0,
+            0.15,
+            0.35,
+            0.7,
+            1.2,
+            2,
+            3
+        }
+
+        for _, delayTime in
+            ipairs(retryTimes) do
+
+            if myToken ~= ApplyToken
+            or not Alive then
+                return
+            end
+
+            if delayTime > 0 then
+                task.wait(delayTime)
+            end
+
+            local Animate =
+                GetAnimate()
+
+            if Animate then
+
+                pcall(function()
+
+                    local walk =
+                        Animate:FindFirstChild(
+                            "walk"
+                        )
+
+                    if walk then
+                        SetAnimation(
+                            walk,
+                            "WalkAnim",
+                            pack.Walk
+                        )
+                    end
+
+                    local run =
+                        Animate:FindFirstChild(
+                            "run"
+                        )
+
+                    if run then
+                        SetAnimation(
+                            run,
+                            "RunAnim",
+                            pack.Run
+                        )
+                    end
+
+                    local jump =
+                        Animate:FindFirstChild(
+                            "jump"
+                        )
+
+                    if jump then
+                        SetAnimation(
+                            jump,
+                            "JumpAnim",
+                            pack.Jump
+                        )
+                    end
+
+                    local fall =
+                        Animate:FindFirstChild(
+                            "fall"
+                        )
+
+                    if fall then
+                        SetAnimation(
+                            fall,
+                            "FallAnim",
+                            pack.Fall
+                        )
+                    end
+
+                    local climb =
+                        Animate:FindFirstChild(
+                            "climb"
+                        )
+
+                    if climb then
+                        SetAnimation(
+                            climb,
+                            "ClimbAnim",
+                            pack.Climb
+                        )
+                    end
+
+                    local swim =
+                        Animate:FindFirstChild(
+                            "swim"
+                        )
+
+                    if swim then
+                        SetAnimation(
+                            swim,
+                            "Swim",
+                            pack.Swim
+                        )
+                    end
+
+                    local swimIdle =
+                        Animate:FindFirstChild(
+                            "swimidle"
+                        )
+
+                    if swimIdle then
+                        SetAnimation(
+                            swimIdle,
+                            "SwimIdle",
+                            pack.SwimIdle
+                        )
+                    end
+
+                    local idle =
+                        Animate:FindFirstChild(
+                            "idle"
+                        )
+
+                    if idle then
+
+                        if pack.Idle1 then
+                            SetAnimation(
+                                idle,
+                                "Animation1",
+                                pack.Idle1
+                            )
+                        end
+
+                        if pack.Idle2 then
+                            SetAnimation(
+                                idle,
+                                "Animation2",
+                                pack.Idle2
+                            )
+                        end
+
+                    end
+
+                end)
+
+                Status.Text =
+                    "ACTIVE • " ..
+                    packName ..
+                    " "
+
+                return
+
+            end
+
+        end
+
+        Status.Text =
+            "CHƯA ÁP DỤNG ĐƯỢC • THỬ LẠI "
+
+    end)
+
+end
+
+--==============================================================--
+-- PACK CARDS
+--==============================================================--
+
+local PackCards = {}
+
+local function ClearContent()
+
+    for _, child in
+        ipairs(Content:GetChildren()) do
+
+        if child:IsA("GuiObject") then
+            child:Destroy()
+        end
+
+    end
+
+    PackCards = {}
+
+end
+
+local function CreatePackCard(packName)
+
+    local card =
+        Instance.new("TextButton")
+
+    card.Name = packName
+
+    card.Size =
+        UDim2.new(1, -4, 0, 52)
+
+    card.AutoButtonColor = false
+    card.Text = ""
+
+    card.BackgroundColor3 =
+        Color3.fromRGB(13, 16, 32)
+
+    card.BackgroundTransparency = 0.10
+    card.BorderSizePixel = 0
+    card.Parent = Content
+
+    Corner(card, 11)
+
+    local border =
+        Stroke(
+            card,
+            Color3.fromRGB(40, 100, 155),
+            1,
+            0.3
+        )
+
+    local title =
+        MakeText(
+            card,
+            packName .. " ",
+            13,
+            true
+        )
+
+    title.Position =
+        UDim2.new(0, 12, 0, 7)
+
+    title.Size =
+        UDim2.new(1, -24, 0, 20)
+
+    local sub =
+        MakeText(
+            card,
+            "ANIMATION PACK • CLICK TO APPLY ",
+            9,
+            false
+        )
+
+    sub.Position =
+        UDim2.new(0, 12, 0, 29)
+
+    sub.Size =
+        UDim2.new(1, -24, 0, 15)
+
+    sub.TextColor3 =
+        Color3.fromRGB(125, 155, 180)
+
+    Connect(
+        card.MouseEnter,
+        function()
+
+            TweenService:Create(
+                card,
+                TweenInfo.new(
+                    0.25,
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    BackgroundColor3 =
+                        Color3.fromRGB(
+                            18, 25, 48
+                        )
+                }
+            ):Play()
+
+            border.Color = Cyan
+            border.Transparency = 0.05
+
+        end
+    )
+
+    Connect(
+        card.MouseLeave,
+        function()
+
+            TweenService:Create(
+                card,
+                TweenInfo.new(
+                    0.3,
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    BackgroundColor3 =
+                        Color3.fromRGB(
+                            13, 16, 32
+                        )
+                }
+            ):Play()
+
+            border.Transparency = 0.3
+
+        end
+    )
+
+    Connect(
+        card.Activated,
+        function()
+            ApplyPack(packName)
+        end
+    )
+
+    table.insert(
+        PackCards,
+        {
+            Button = card,
+            Name = packName
+        }
+    )
+
+    return card
+end
+
+local function RenderPacks(filter)
+
+    ClearContent()
+
+    local query =
+        string.lower(
+            tostring(filter or "")
+        )
+
+    for packName in
+        pairs(AnimationPacks) do
+
+        if query == ""
+        or string.find(
+            string.lower(packName),
+            query,
+            1,
+            true
+        ) then
+
+            CreatePackCard(packName)
+
+        end
+
+    end
+
+    task.defer(function()
+
+        if ContentLayout then
+
+            Content.CanvasSize =
+                UDim2.new(
+                    0,
+                    0,
+                    0,
+                    ContentLayout
+                        .AbsoluteContentSize.Y
+                    + 20
+                )
+
+        end
+
+    end)
+
+end
+
+--==============================================================--
+-- SIDEBAR
+--==============================================================--
+
+local function CreateSidebarButton(
+    text,
+    callback
+)
+
+    local b =
+        MakeButton(
+            Sidebar,
+            text
+        )
+
+    b.Size =
+        UDim2.new(1, -14, 0, 36)
+
+    Connect(
+        b.Activated,
+        function()
+            callback()
+        end
+    )
+
+    return b
+end
+
+CreateSidebarButton(
+    "HOME ",
+    function()
+
+        Search.Text = ""
+
+        RenderPacks("")
+
+        Status.Text =
+            "HOME • 34 PACKS SẴN SÀNG "
+
+    end
+)
+
+CreateSidebarButton(
+    "ANIMATION ",
+    function()
+
+        Search.Text = ""
+
+        RenderPacks("")
+
+        Status.Text =
+            "ANIMATION • 34 PACKS • CHỌN PACK "
+
+    end
+)
+
+CreateSidebarButton(
+    "CONTROL ",
+    function()
+
+        ClearContent()
+
+        local info =
+            Instance.new("TextLabel")
+
+        info.Size =
+            UDim2.new(1, -4, 0, 100)
+
+        info.BackgroundTransparency = 1
+
+        info.Text =
+            "CONTROL \n\n" ..
+            "Chọn Animation Pack để áp dụng.\n" ..
+            "Animation sẽ tự áp lại sau respawn."
+
+        info.TextColor3 = White
+        info.TextSize = 13
+        info.Font = Enum.Font.GothamBold
+        info.TextWrapped = true
+        info.Parent = Content
+
+        Status.Text =
+            "CONTROL • READY "
+
+    end
+)
+
+CreateSidebarButton(
+    "SETTINGS ",
+    function()
+
+        ClearContent()
+
+        local toggle =
+            MakeButton(
+                Content,
+                "EFFECTS: " ..
+                (
+                    EffectsEnabled
+                    and "ON"
+                    or "OFF"
+                ) ..
+                " "
+            )
+
+        toggle.Size =
+            UDim2.new(1, -4, 0, 46)
+
+        Connect(
+            toggle.Activated,
+            function()
+
+                EffectsEnabled =
+                    not EffectsEnabled
+
+                toggle.Text =
+                    "EFFECTS: " ..
+                    (
+                        EffectsEnabled
+                        and "ON"
+                        or "OFF"
+                    ) ..
+                    " "
+
+            end
+        )
+
+        Status.Text =
+            "SETTINGS • EFFECTS "
+
+    end
+)
+
+CreateSidebarButton(
+    "COMING SOON ",
+    function()
+
+        ClearContent()
+
+        local info =
+            Instance.new("TextLabel")
+
+        info.Size =
+            UDim2.new(1, -4, 0, 90)
+
+        info.BackgroundTransparency = 1
+
+        info.Text =
+            "COMING SOON \n\n" ..
+            "Tính năng mới sẽ được thêm sau."
+
+        info.TextColor3 =
+            Color3.fromRGB(
+                180, 195, 215
+            )
+
+        info.TextSize = 14
+        info.Font = Enum.Font.GothamBold
+        info.TextWrapped = true
+        info.Parent = Content
+
+        Status.Text =
+            "COMING SOON "
+
+    end
+)
+
+--==============================================================--
+-- SEARCH
+--==============================================================--
+
+Connect(
+    Search:GetPropertyChangedSignal("Text"),
+    function()
+        RenderPacks(Search.Text)
+    end
+)
+
+--==============================================================--
+-- OPEN / CLOSE
+--==============================================================--
+
+local MainOpen = true
+
+local function ShowMain()
+
+    MainOpen = true
+
+    Main.Visible = true
+    MenuButton.Visible = false
+
+    Main.Size =
+        UDim2.new(0, 590, 0, 350)
+
+    TweenService:Create(
+        Main,
+        TweenInfo.new(
+            0.35,
+            Enum.EasingStyle.Quint,
+            Enum.EasingDirection.Out
+        ),
+        {
+            Size =
+                UDim2.new(
+                    0,
+                    620,
+                    0,
+                    370
+                )
+        }
+    ):Play()
+
+end
+
+local function HideMain()
+
+    MainOpen = false
+
+    local tween =
+        TweenService:Create(
+            Main,
+            TweenInfo.new(
+                0.3,
+                Enum.EasingStyle.Quint,
+                Enum.EasingDirection.In
+            ),
+            {
+                Size =
+                    UDim2.new(
+                        0,
+                        590,
+                        0,
+                        350
+                    )
+            }
+        )
+
+    tween:Play()
+
+    tween.Completed:Once(
+        function()
+
+            if not MainOpen then
+
+                Main.Visible = false
+                MenuButton.Visible = true
+
+            end
+
+        end
+    )
+
+end
+
+Connect(
+    Minimize.Activated,
+    HideMain
+)
+
+Connect(
+    MenuButton.Activated,
+    ShowMain
+)
+
+Connect(
+    Close.Activated,
+    function()
+        Cleanup()
+    end
+)
+
+--==============================================================--
+-- SLOW NEON BORDER
+--==============================================================--
+
+task.spawn(function()
+
+    local hue = 0
+
+    while Alive and Gui.Parent do
+
+        if EffectsEnabled then
+
+            hue += 0.0015
+
+            if hue >= 1 then
+                hue = 0
+            end
+
+            local c1 =
+                Color3.fromHSV(
+                    hue,
+                    0.85,
+                    1
+                )
+
+            local c2 =
+                Color3.fromHSV(
+                    (hue + 0.16) % 1,
+                    0.85,
+                    1
+                )
+
+            MainStroke.Color = c1
+
+            if MenuButton.Parent then
+
+                local s =
+                    MenuButton:
+                    FindFirstChildOfClass(
+                        "UIStroke"
+                    )
+
+                if s then
+                    s.Color = c2
                 end
-            end)
-            Status.Text = "✅ ĐÃ ÁP DỤNG: "..packName
+
+            end
+
+        end
+
+        task.wait(0.08)
+
+    end
+
+end)
+
+--==============================================================--
+-- TITLE SHINE
+--==============================================================--
+
+local TitleGradient =
+    Instance.new("UIGradient")
+
+TitleGradient.Color =
+    ColorSequence.new({
+
+        ColorSequenceKeypoint.new(
+            0,
+            Cyan
+        ),
+
+        ColorSequenceKeypoint.new(
+            0.5,
+            White
+        ),
+
+        ColorSequenceKeypoint.new(
+            1,
+            Purple
+        )
+
+    })
+
+TitleGradient.Parent = Title
+
+task.spawn(function()
+
+    local offset = -1
+
+    while Alive and Gui.Parent do
+
+        if EffectsEnabled then
+
+            offset += 0.006
+
+            if offset > 1 then
+                offset = -1
+            end
+
+            TitleGradient.Offset =
+                Vector2.new(
+                    offset,
+                    0
+                )
+
+        end
+
+        task.wait(0.07)
+
+    end
+
+end)
+
+--==============================================================--
+-- SHINE LINE
+--==============================================================--
+
+local ShineLine =
+    Instance.new("Frame")
+
+ShineLine.Size =
+    UDim2.new(0, 75, 0, 2)
+
+ShineLine.Position =
+    UDim2.new(0, 64, 0, 55)
+
+ShineLine.BackgroundColor3 =
+    Cyan
+
+ShineLine.BorderSizePixel = 0
+ShineLine.Parent = Top
+
+Corner(ShineLine, 2)
+
+task.spawn(function()
+
+    while Alive and Gui.Parent do
+
+        if EffectsEnabled then
+
+            local grow =
+                TweenService:Create(
+                    ShineLine,
+                    TweenInfo.new(
+                        1.35,
+                        Enum.EasingStyle.Sine,
+                        Enum.EasingDirection.InOut
+                    ),
+                    {
+                        Size =
+                            UDim2.new(
+                                0,
+                                190,
+                                0,
+                                2
+                            )
+                    }
+                )
+
+            grow:Play()
+            grow.Completed:Wait()
+
+            if not Alive then
+                break
+            end
+
+            local shrink =
+                TweenService:Create(
+                    ShineLine,
+                    TweenInfo.new(
+                        1.35,
+                        Enum.EasingStyle.Sine,
+                        Enum.EasingDirection.InOut
+                    ),
+                    {
+                        Size =
+                            UDim2.new(
+                                0,
+                                75,
+                                0,
+                                2
+                            )
+                    }
+                )
+
+            shrink:Play()
+            shrink.Completed:Wait()
+
+        else
+
+            task.wait(0.5)
+
+        end
+
+    end
+
+end)
+
+--==============================================================--
+-- RESPAWN AUTO APPLY
+--==============================================================--
+
+Connect(
+    Player.CharacterAdded,
+    function()
+
+        if not CurrentPackName then
             return
         end
-        Status.Text = "⚠️ THỬ LẠI SAU NHA"
-    end)
+
+        local savedPack =
+            CurrentPackName
+
+        task.spawn(function()
+
+            task.wait(0.5)
+
+            if Alive
+            and savedPack
+            and AnimationPacks[savedPack] then
+
+                ApplyPack(savedPack)
+
+            end
+
+        end)
+
+    end
+)
+
+--==============================================================--
+-- CONTENT SIZE
+--==============================================================--
+
+Connect(
+    ContentLayout:GetPropertyChangedSignal(
+        "AbsoluteContentSize"
+    ),
+    function()
+
+        Content.CanvasSize =
+            UDim2.new(
+                0,
+                0,
+                0,
+                ContentLayout
+                    .AbsoluteContentSize.Y
+                + 20
+            )
+
+    end
+)
+
+Connect(
+    SidebarLayout:GetPropertyChangedSignal(
+        "AbsoluteContentSize"
+    ),
+    function()
+
+        Sidebar.CanvasSize =
+            UDim2.new(
+                0,
+                0,
+                0,
+                SidebarLayout
+                    .AbsoluteContentSize.Y
+                + 20
+            )
+
+    end
+)
+
+--==============================================================--
+-- MOBILE SCALE
+--==============================================================--
+
+local function UpdateMobileSize()
+
+    local camera =
+        workspace.CurrentCamera
+
+    if not camera then
+        return
+    end
+
+    local viewport =
+        camera.ViewportSize
+
+    if viewport.X <= 700 then
+
+        Main.Size =
+            UDim2.new(
+                0.92,
+                0,
+                0,
+                370
+            )
+
+        Main.Position =
+            UDim2.new(
+                0.04,
+                0,
+                0.5,
+                -185
+            )
+
+        Sidebar.Size =
+            UDim2.new(
+                0,
+                115,
+                0,
+                245
+            )
+
+        Content.Position =
+            UDim2.new(
+                0,
+                143,
+                0,
+                108
+            )
+
+        Content.Size =
+            UDim2.new(
+                1,
+                -157,
+                0,
+                245
+            )
+
+    else
+
+        Main.Size =
+            UDim2.new(
+                0,
+                620,
+                0,
+                370
+            )
+
+        Main.Position =
+            UDim2.new(
+                0.5,
+                -310,
+                0.5,
+                -185
+            )
+
+        Sidebar.Size =
+            UDim2.new(
+                0,
+                135,
+                0,
+                245
+            )
+
+        Content.Position =
+            UDim2.new(
+                0,
+                163,
+                0,
+                108
+            )
+
+        Content.Size =
+            UDim2.new(
+                0,
+                441,
+                0,
+                245
+            )
+
+    end
+
+end
+
+pcall(UpdateMobileSize)
+
+if workspace.CurrentCamera then
+
+    Connect(
+        workspace.CurrentCamera:
+        GetPropertyChangedSignal(
+            "ViewportSize"
+        ),
+        UpdateMobileSize
+    )
+
 end
 
 --==============================================================--
--- HIỂN THỊ DANH SÁCH
+-- INITIAL RENDER
 --==============================================================--
-local function RenderPacks(filter)
-    for _,c in ipairs(Content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
-    local q = string.lower(filter or "")
-    for name,pack in pairs(AnimationPacks) do
-        if q == "" or string.find(string.lower(name), q, 1, true) then
-            local card = MakeGui("TextButton", {
-                Text="", AutoButtonColor=false, BackgroundTransparency=0.1,
-                BackgroundColor3=Color3.fromRGB(13,16,32), Size=UDim2.new(1,-4,0,52), Parent=Content
-            })
-            Corner(card, 11)
-            local border = Stroke(card, Color3.fromRGB(40,100,155), 1, 0.3)
-            MakeGui("TextLabel", {
-                Text=name, TextColor3=White, TextSize=13, Font=Enum.Font.GothamBold,
-                Position=UDim2.new(0,12,0,7), Size=UDim2.new(1,-24,0,20), BackgroundTransparency=1, Parent=card
-            })
-            MakeGui("TextLabel", {
-                Text="CLICK ĐỂ ÁP DỤNG ✅", TextColor3=Color3.fromRGB(125,155,180), TextSize=9,
-                Position=UDim2.new(0,12,0,29), Size=UDim2.new(1,-24,0,15), BackgroundTransparency=1, Parent=card
-            })
-            Connect(card.MouseEnter, function()
-                TweenService:Create(card, TweenInfo.new(0.25), {BackgroundColor3=Color3.fromRGB(18,25,48)}):Play()
-                border.Transparency = 0.05; border.Color = Cyan
-            end)
-            Connect(card.MouseLeave, function()
-                TweenService:Create(card, TweenInfo.new(0.3), {BackgroundColor3=Color3.fromRGB(13,16,32)}):Play()
-                border.Transparency = 0.3; border.Color = Color3.fromRGB(40,100,155)
-            end)
-            Connect(card.Activated, function() ApplyPack(name) end)
-        end
-    end
-    task.defer(function() Content.CanvasSize = UDim2.new(0,0,0,ContentLayout.AbsoluteContentSize.Y + 20) end)
-end
 
--- Nút thanh bên
-local function SideBtn(text, cb)
-    local btn = MakeGui("TextButton", {
-        Text=text, AutoButtonColor=false, TextColor3=White, TextSize=13, Font=Enum.Font.GothamBold,
-        BackgroundColor3=Color3.fromRGB(12,15,30), BackgroundTransparency=0.15, Size=UDim2.new(1,-14,0,36), Parent=Sidebar
-    })
-    Corner(btn, 10); Stroke(btn, Color3.fromRGB(40,100,150), 1, 0.25)
-    Connect(btn.Activated, cb)
-end
-
-SideBtn("🏠 TRANG CHỦ", function() Search.Text = ""; RenderPacks(""); Status.Text = "FURINA V10 • 34 PACKS SẴN SÀNG ✅" end)
-SideBtn("🎬 ANIMATION", function() Search.Text = ""; RenderPacks(""); Status.Text = "CHỌN PACK ĐỂ ÁP DỤNG ✅" end)
-SideBtn("⚙️ CÀI ĐẶT", function()
-    for _,c in ipairs(Content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
-    local toggle = MakeGui("TextButton", {
-        Text="HIỆU ỨNG: "..(EffectsEnabled and "BẬT ✅" or "TẮT ❌"), AutoButtonColor=false,
-        BackgroundColor3=Color3.fromRGB(12,15,30), BackgroundTransparency=0.15,
-        Size=UDim2.new(1,-4,0,46), TextColor3=White, TextSize=13, Font=Enum.Font.GothamBold, Parent=Content
-    })
-    Corner(toggle, 10); Stroke(toggle, Cyan, 1, 0.25)
-    Connect(toggle.Activated, function()
-        EffectsEnabled = not EffectsEnabled
-        toggle.Text = "HIỆU ỨNG: "..(EffectsEnabled and "BẬT ✅" or "TẮT ❌")
-    end)
-end)
-
--- Tìm kiếm
-Connect(Search:GetPropertyChangedSignal("Text"), function() RenderPacks(Search.Text) end)
-
--- Đóng/Mở
-local MainOpen = true
-Connect(Minimize.Activated, function()
-    MainOpen = false
-    TweenService:Create(Main, TweenInfo.new(0.3), {Size=UDim2.fromOffset(590,350)}).Completed:Connect(function()
-        if not MainOpen then Main.Visible = false; MenuButton.Visible = true end
-    end)
-end)
-Connect(MenuButton.Activated, function() MainOpen = true; Main.Visible = true; MenuButton.Visible = false end)
-Connect(Close.Activated, Cleanup)
-
--- Auto áp lại sau hồi sinh
-Connect(Player.CharacterAdded, function()
-    task.wait(0.5)
-    if CurrentPack then ApplyPack(CurrentPack) end
-end)
-
--- Hiệu ứng viền màu mượt mà
-task.spawn(function()
-    local hue = 0
-    while Alive and Gui.Parent do
-        if EffectsEnabled then
-            hue = (hue + 0.002) % 1
-            MainStroke.Color = Color3.fromHSV(hue, 0.85, 1)
-        end
-        task.wait(FPS_MODE and 0.1 or 0.05)
-    end
-end)
-
--- Khởi tạo
 RenderPacks("")
-Status.Text = "✅ FURINA V10 • 34 PACKS • ĐÃ TẢI XONG"
-print("[FURINA V10] ✅ Đã tải thành công! 34 packs")
+
+Status.Text =
+    "READY • 34 PACKS • CHỌN ANIMATION "
+
+print(
+    "[ZYNTRIX VIP PRIME] Animation Hub • 34 PACKS loaded successfully."
+)
